@@ -57,8 +57,7 @@ public class Builder {
 
             if (s.ok()) {
                 // Verify that the table is usable
-                Iterator it = table_cache.NewIterator(new ReadOptions(),
-                        meta.getNumber(), meta.getFile_size(), null);
+                Iterator it = table_cache.NewIterator(new ReadOptions(),meta.getNumber(), meta.getFile_size(), null);
                 s = it.status();
                 it = null;
             }
