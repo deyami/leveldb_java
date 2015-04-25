@@ -18,45 +18,45 @@ package de.jarnbjo.jsnappy;
 
 class IntIterator {
 
-	int[] data;
-	int offset;
-	int key;
+    int[] data;
+    int offset;
+    int key;
 
-	IntIterator() {
-	}
+    IntIterator() {
+    }
 
-	IntIterator(int[] data, int key) {
-		this.data = data;
-		this.key = key;
-		this.offset = data[0] * 2 + 1;
-	}
+    IntIterator(int[] data, int key) {
+        this.data = data;
+        this.key = key;
+        this.offset = data[0] * 2 + 1;
+    }
 
-	boolean next() {
-		while(offset > 2) {
-			offset -= 2;
-			if(data[offset] == key) {
-				return true;
-			}
-		}
-		return false;
-	}
+    boolean next() {
+        while (offset > 2) {
+            offset -= 2;
+            if (data[offset] == key) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	int get() {
-		return data[offset+1];
-	}
+    int get() {
+        return data[offset + 1];
+    }
 
-	static IntIterator EMTPY_ITERATOR = new IntIterator() {
+    static IntIterator EMTPY_ITERATOR = new IntIterator() {
 
-		@Override
-		boolean next() {
-			return false;
-		}
+        @Override
+        boolean next() {
+            return false;
+        }
 
-		@Override
-		int get() {
-			return 0;
-		}
+        @Override
+        int get() {
+            return 0;
+        }
 
-	};
+    };
 
 }

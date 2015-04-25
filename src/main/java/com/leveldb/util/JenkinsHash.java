@@ -19,87 +19,86 @@ package com.leveldb.util;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import static java.lang.Integer.rotateLeft;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import static java.lang.Integer.rotateLeft;
+
 /**
  * Produces 32-bit hash for hash table lookup.
- * 
+ * <p/>
  * <pre>
  * lookup3.c, by Bob Jenkins, May 2006, Public Domain.
- * 
+ *
  * You can use this free for any purpose. It's in the public domain.
  * It has no warranty.
  * </pre>
- * 
+ *
  * @see <a href="http://burtleburtle.net/bob/c/lookup3.c">lookup3.c</a>
  * @see <a href="http://www.ddj.com/184410284">Hash Functions (and how this
- *      function compares to others such as CRC, MD?, etc</a>
+ * function compares to others such as CRC, MD?, etc</a>
  * @see <a href="http://burtleburtle.net/bob/hash/doobs.html">Has update on the
- *      Dr. Dobbs Article</a>
+ * Dr. Dobbs Article</a>
  */
 public class JenkinsHash {
-	private static final int BYTE_MASK = 0xff;
-	private static JenkinsHash _instance = new JenkinsHash();
+    private static final int BYTE_MASK = 0xff;
+    private static JenkinsHash _instance = new JenkinsHash();
 
-	public static JenkinsHash getInstance() {
-		return _instance;
-	}
+    public static JenkinsHash getInstance() {
+        return _instance;
+    }
 
-	/**
-	 * taken from hashlittle() -- hash a variable-length key into a 32-bit value
-	 * 
-	 * @param key
-	 *            the key (the unaligned variable-length array of bytes)
-	 * @param nbytes
-	 *            number of bytes to include in hash
-	 * @param initval
-	 *            can be any integer value
-	 * @return a 32-bit value. Every bit of the key affects every bit of the
-	 *         return value. Two keys differing by one or two bits will have
-	 *         totally different hash values.
-	 * 
-	 *         <p>
-	 *         The best hash table sizes are powers of 2. There is no need to do
-	 *         mod a prime (mod is sooo slow!). If you need less than 32 bits,
-	 *         use a bitmask. For example, if you need only 10 bits, do
-	 *         <code>h = (h & hashmask(10));</code> In which case, the hash
-	 *         table should have hashsize(10) elements.
-	 * 
-	 *         <p>
-	 *         If you are hashing n strings byte[][] k, do it like this: for
-	 *         (int i = 0, h = 0; i < n; ++i) h = hash( k[i], h);
-	 * 
-	 *         <p>
-	 *         By Bob Jenkins, 2006. bob_jenkins@burtleburtle.net. You may use
-	 *         this code any way you wish, private, educational, or commercial.
-	 *         It's free.
-	 * 
-	 *         <p>
-	 *         Use for hash table lookup, or anything where one collision in
-	 *         2^^32 is acceptable. Do NOT use for cryptographic purposes.
-	 */
-	@SuppressWarnings("fallthrough")
-	public static int hash(byte[] key, int off, int nbytes, int initval) {
-		int length = nbytes;
-		int a, b, c;
-		a = b = c = 0xdeadbeef + length + initval;
-		int offset = off;
-		for (; length > 12; offset += 12, length -= 12) {
-			a += (key[offset] & BYTE_MASK);
-			a += ((key[offset + 1] & BYTE_MASK) << 8);
-			a += ((key[offset + 2] & BYTE_MASK) << 16);
-			a += ((key[offset + 3] & BYTE_MASK) << 24);
-			b += (key[offset + 4] & BYTE_MASK);
-			b += ((key[offset + 5] & BYTE_MASK) << 8);
-			b += ((key[offset + 6] & BYTE_MASK) << 16);
-			b += ((key[offset + 7] & BYTE_MASK) << 24);
-			c += (key[offset + 8] & BYTE_MASK);
-			c += ((key[offset + 9] & BYTE_MASK) << 8);
-			c += ((key[offset + 10] & BYTE_MASK) << 16);
-			c += ((key[offset + 11] & BYTE_MASK) << 24);
-			/*
+    /**
+     * taken from hashlittle() -- hash a variable-length key into a 32-bit value
+     *
+     * @param key     the key (the unaligned variable-length array of bytes)
+     * @param nbytes  number of bytes to include in hash
+     * @param initval can be any integer value
+     * @return a 32-bit value. Every bit of the key affects every bit of the
+     * return value. Two keys differing by one or two bits will have
+     * totally different hash values.
+     * <p/>
+     * <p/>
+     * The best hash table sizes are powers of 2. There is no need to do
+     * mod a prime (mod is sooo slow!). If you need less than 32 bits,
+     * use a bitmask. For example, if you need only 10 bits, do
+     * <code>h = (h & hashmask(10));</code> In which case, the hash
+     * table should have hashsize(10) elements.
+     * <p/>
+     * <p/>
+     * If you are hashing n strings byte[][] k, do it like this: for
+     * (int i = 0, h = 0; i < n; ++i) h = hash( k[i], h);
+     * <p/>
+     * <p/>
+     * By Bob Jenkins, 2006. bob_jenkins@burtleburtle.net. You may use
+     * this code any way you wish, private, educational, or commercial.
+     * It's free.
+     * <p/>
+     * <p/>
+     * Use for hash table lookup, or anything where one collision in
+     * 2^^32 is acceptable. Do NOT use for cryptographic purposes.
+     */
+    @SuppressWarnings("fallthrough")
+    public static int hash(byte[] key, int off, int nbytes, int initval) {
+        int length = nbytes;
+        int a, b, c;
+        a = b = c = 0xdeadbeef + length + initval;
+        int offset = off;
+        for (; length > 12; offset += 12, length -= 12) {
+            a += (key[offset] & BYTE_MASK);
+            a += ((key[offset + 1] & BYTE_MASK) << 8);
+            a += ((key[offset + 2] & BYTE_MASK) << 16);
+            a += ((key[offset + 3] & BYTE_MASK) << 24);
+            b += (key[offset + 4] & BYTE_MASK);
+            b += ((key[offset + 5] & BYTE_MASK) << 8);
+            b += ((key[offset + 6] & BYTE_MASK) << 16);
+            b += ((key[offset + 7] & BYTE_MASK) << 24);
+            c += (key[offset + 8] & BYTE_MASK);
+            c += ((key[offset + 9] & BYTE_MASK) << 8);
+            c += ((key[offset + 10] & BYTE_MASK) << 16);
+            c += ((key[offset + 11] & BYTE_MASK) << 24);
+            /*
 			 * mix -- mix 3 32-bit values reversibly. This is reversible, so any
 			 * information in (a,b,c) before mix() is still in (a,b,c) after
 			 * mix().
@@ -144,57 +143,57 @@ public class JenkinsHash {
 			 * 
 			 * mix(a,b,c);
 			 */
-			a -= c;
-			a ^= rotateLeft(c, 4);
-			c += b;
-			b -= a;
-			b ^= rotateLeft(a, 6);
-			a += c;
-			c -= b;
-			c ^= rotateLeft(b, 8);
-			b += a;
-			a -= c;
-			a ^= rotateLeft(c, 16);
-			c += b;
-			b -= a;
-			b ^= rotateLeft(a, 19);
-			a += c;
-			c -= b;
-			c ^= rotateLeft(b, 4);
-			b += a;
-		}
-		// -------------------------------- last block: affect all 32 bits of
-		// (c)
-		switch (length) { // all the case statements fall through
-		case 12:
-			c += ((key[offset + 11] & BYTE_MASK) << 24);
-		case 11:
-			c += ((key[offset + 10] & BYTE_MASK) << 16);
-		case 10:
-			c += ((key[offset + 9] & BYTE_MASK) << 8);
-		case 9:
-			c += (key[offset + 8] & BYTE_MASK);
-		case 8:
-			b += ((key[offset + 7] & BYTE_MASK) << 24);
-		case 7:
-			b += ((key[offset + 6] & BYTE_MASK) << 16);
-		case 6:
-			b += ((key[offset + 5] & BYTE_MASK) << 8);
-		case 5:
-			b += (key[offset + 4] & BYTE_MASK);
-		case 4:
-			a += ((key[offset + 3] & BYTE_MASK) << 24);
-		case 3:
-			a += ((key[offset + 2] & BYTE_MASK) << 16);
-		case 2:
-			a += ((key[offset + 1] & BYTE_MASK) << 8);
-		case 1:
-			// noinspection PointlessArithmeticExpression
-			a += (key[offset + 0] & BYTE_MASK);
-			break;
-		case 0:
-			return c;
-		}
+            a -= c;
+            a ^= rotateLeft(c, 4);
+            c += b;
+            b -= a;
+            b ^= rotateLeft(a, 6);
+            a += c;
+            c -= b;
+            c ^= rotateLeft(b, 8);
+            b += a;
+            a -= c;
+            a ^= rotateLeft(c, 16);
+            c += b;
+            b -= a;
+            b ^= rotateLeft(a, 19);
+            a += c;
+            c -= b;
+            c ^= rotateLeft(b, 4);
+            b += a;
+        }
+        // -------------------------------- last block: affect all 32 bits of
+        // (c)
+        switch (length) { // all the case statements fall through
+            case 12:
+                c += ((key[offset + 11] & BYTE_MASK) << 24);
+            case 11:
+                c += ((key[offset + 10] & BYTE_MASK) << 16);
+            case 10:
+                c += ((key[offset + 9] & BYTE_MASK) << 8);
+            case 9:
+                c += (key[offset + 8] & BYTE_MASK);
+            case 8:
+                b += ((key[offset + 7] & BYTE_MASK) << 24);
+            case 7:
+                b += ((key[offset + 6] & BYTE_MASK) << 16);
+            case 6:
+                b += ((key[offset + 5] & BYTE_MASK) << 8);
+            case 5:
+                b += (key[offset + 4] & BYTE_MASK);
+            case 4:
+                a += ((key[offset + 3] & BYTE_MASK) << 24);
+            case 3:
+                a += ((key[offset + 2] & BYTE_MASK) << 16);
+            case 2:
+                a += ((key[offset + 1] & BYTE_MASK) << 8);
+            case 1:
+                // noinspection PointlessArithmeticExpression
+                a += (key[offset + 0] & BYTE_MASK);
+                break;
+            case 0:
+                return c;
+        }
 		/*
 		 * final -- final mixing of 3 32-bit values (a,b,c) into c
 		 * 
@@ -220,47 +219,45 @@ public class JenkinsHash {
 		 * c; a -= rot(c,4); \ b ^= a; b -= rot(a,14); \ c ^= b; c -= rot(b,24);
 		 * \ }
 		 */
-		c ^= b;
-		c -= rotateLeft(b, 14);
-		a ^= c;
-		a -= rotateLeft(c, 11);
-		b ^= a;
-		b -= rotateLeft(a, 25);
-		c ^= b;
-		c -= rotateLeft(b, 16);
-		a ^= c;
-		a -= rotateLeft(c, 4);
-		b ^= a;
-		b -= rotateLeft(a, 14);
-		c ^= b;
-		c -= rotateLeft(b, 24);
-		return c;
-	}
-	
-	public static int hash(byte[] key){
-		return hash(key, 0, key.length, 0);
-	}
+        c ^= b;
+        c -= rotateLeft(b, 14);
+        a ^= c;
+        a -= rotateLeft(c, 11);
+        b ^= a;
+        b -= rotateLeft(a, 25);
+        c ^= b;
+        c -= rotateLeft(b, 16);
+        a ^= c;
+        a -= rotateLeft(c, 4);
+        b ^= a;
+        b -= rotateLeft(a, 14);
+        c ^= b;
+        c -= rotateLeft(b, 24);
+        return c;
+    }
 
-	/**
-	 * Compute the hash of the specified file
-	 * 
-	 * @param args
-	 *            name of file to compute hash of.
-	 * @throws IOException
-	 *             e
-	 */
-	public static void main(String[] args) throws IOException {
-		if (args.length != 1) {
-			System.err.println("Usage: JenkinsHash filename");
-			System.exit(-1);
-		}
-		FileInputStream in = new FileInputStream(args[0]);
-		byte[] bytes = new byte[512];
-		int value = 0;
-		JenkinsHash hash = new JenkinsHash();
-		for (int length = in.read(bytes); length > 0; length = in.read(bytes)) {
-			value = hash.hash(bytes, 0, length, value);
-		}
-		System.out.println(Math.abs(value));
-	}
+    public static int hash(byte[] key) {
+        return hash(key, 0, key.length, 0);
+    }
+
+    /**
+     * Compute the hash of the specified file
+     *
+     * @param args name of file to compute hash of.
+     * @throws IOException e
+     */
+    public static void main(String[] args) throws IOException {
+        if (args.length != 1) {
+            System.err.println("Usage: JenkinsHash filename");
+            System.exit(-1);
+        }
+        FileInputStream in = new FileInputStream(args[0]);
+        byte[] bytes = new byte[512];
+        int value = 0;
+        JenkinsHash hash = new JenkinsHash();
+        for (int length = in.read(bytes); length > 0; length = in.read(bytes)) {
+            value = hash.hash(bytes, 0, length, value);
+        }
+        System.out.println(Math.abs(value));
+    }
 }
