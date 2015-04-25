@@ -69,12 +69,12 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public _SequentialFile NewSequentialFile(String fname) {
+    public _SequentialFile newSequentialFile(String fname) {
         return new DefaultSequentialFile(fname);
     }
 
     @Override
-    public _RandomAccessFile NewRandomAccessFile(String fname) {
+    public _RandomAccessFile newRandomAccessFile(String fname) {
         try {
             return new DefaultRandomAccessFile(fname);
         } catch (IOException e) {
@@ -84,17 +84,17 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public _WritableFile NewWritableFile(String fname) {
+    public _WritableFile newWritableFile(String fname) {
         return new DefaultWritableFile(fname, 4 << 10, 4 << 10);
     }
 
     @Override
-    public boolean FileExists(String fname) {
+    public boolean fileExists(String fname) {
         return (new File(fname)).exists();
     }
 
     @Override
-    public List<String> GetChildren(String dir) {
+    public List<String> getChildren(String dir) {
         File[] subFile = (new File(dir)).listFiles();
         if (subFile == null) {
             return new ArrayList<String>(0);
@@ -107,7 +107,7 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public Status DeleteFile(String fname) {
+    public Status deleteFile(String fname) {
         try {
 
             FileUtils.forceDelete(new File(fname));
@@ -115,16 +115,16 @@ public class DefaultEnv extends Env {
         } catch (Exception e) {
             e.printStackTrace();
             // System.exit(1);
-            return Status.IOError(new Slice(e.toString()), null);
+            return Status.ioerror(new Slice(e.toString()), null);
         }
         return Status.OK();
     }
 
     @Override
-    public Status CreateDir(String dirname) {
+    public Status createDir(String dirname) {
         File d = new File(dirname);
         if (d.exists() && d.isDirectory()) {
-            return Status.IOError(new Slice("Same dir exists"), null);
+            return Status.ioerror(new Slice("Same dir exists"), null);
         } else {
             d.mkdir();
         }
@@ -135,21 +135,21 @@ public class DefaultEnv extends Env {
      * dirname MUST be a direction name
      */
     @Override
-    public Status DeleteDir(String dirname) {
+    public Status deleteDir(String dirname) {
         try {
             FileUtils.cleanDirectory(new File(dirname));
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Status.IOError(new Slice(e.getMessage()), null);
+            return Status.ioerror(new Slice(e.getMessage()), null);
         }
         return Status.OK();
 
     }
 
     @Override
-    public long GetFileSize(String fname) {
-        if (FileExists(fname)) {
+    public long getFileSize(String fname) {
+        if (fileExists(fname)) {
             try {
                 FileInputStream fis = new FileInputStream(new File(fname));
                 return fis.available();
@@ -163,7 +163,7 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public Status RenameFile(String src, String target) {
+    public Status renameFile(String src, String target) {
         try {
             File file = new File(src);
             if (!file.renameTo(new File(target))) {
@@ -173,13 +173,13 @@ public class DefaultEnv extends Env {
                 // + target + " failed!");
             }
         } catch (Exception e) {
-            return Status.IOError(new Slice(e.toString()), null);
+            return Status.ioerror(new Slice(e.toString()), null);
         }
         return Status.OK();
     }
 
     @Override
-    public FileLock LockFile(String fname) {
+    public FileLock lockFile(String fname) {
         RandomAccessFile input = null;
         try {
             input = new RandomAccessFile(fname, "rw");
@@ -193,20 +193,20 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public Status UnlockFile(FileLock lock) {
+    public Status unlockFile(FileLock lock) {
         try {
             lock.release();
             lock.channel().close();
         } catch (IOException e) {
             e.printStackTrace();
-            return Status.IOError(new Slice("FileLock release fail"),
+            return Status.ioerror(new Slice("FileLock release fail"),
                     new Slice(e.toString()));
         }
         return Status.OK();
     }
 
     @Override
-    public void Schedule(Function fun) {
+    public void schedule(Function fun) {
         mutex.lock();
         // start background thread if necessary
         if (!started_bgthread_) {
@@ -226,7 +226,7 @@ public class DefaultEnv extends Env {
         mutex.unlock();
     }
 
-    public void EndSchedule() {
+    public void endSchedule() {
         stop_bgthread = true;
         // wlu, 2012-7-10, need to reset 'started_bgthread', otherwise, bg
         // thread will not be created again after database reopen on the fly
@@ -240,7 +240,7 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public void StartThread(final Function fun) {
+    public void startThread(final Function fun) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -251,24 +251,24 @@ public class DefaultEnv extends Env {
     }
 
     @Override
-    public String GetTestDirectory() {
+    public String getTestDirectory() {
         String path = "C:/tmp/leveldb-" + Thread.currentThread().getId();
-        CreateDir(path);
+        createDir(path);
         return path;
     }
 
     @Override
-    public Logger NewLogger(String fname) {
+    public Logger newLogger(String fname) {
         return new DefaultLogger(new File(fname));
     }
 
     @Override
-    public long NowMicros() {
+    public long nowMicros() {
         return (new Date()).getTime();
     }
 
     @Override
-    public void SleepForMicroseconds(int micros) {
+    public void sleepForMicroseconds(int micros) {
         try {
             Thread.sleep(micros);
         } catch (InterruptedException e) {

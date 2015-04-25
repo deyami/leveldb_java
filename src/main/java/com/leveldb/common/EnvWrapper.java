@@ -19,79 +19,79 @@ public class EnvWrapper extends Env {
     }
 
     // The following text is boilerplate that forwards all methods to target()
-    public _SequentialFile NewSequentialFile(String f) {
-        return target_.NewSequentialFile(f);
+    public _SequentialFile newSequentialFile(String f) {
+        return target_.newSequentialFile(f);
     }
 
-    public _RandomAccessFile NewRandomAccessFile(String f) {
-        return target_.NewRandomAccessFile(f);
+    public _RandomAccessFile newRandomAccessFile(String f) {
+        return target_.newRandomAccessFile(f);
     }
 
-    public _WritableFile NewWritableFile(String f) {
-        return target_.NewWritableFile(f);
+    public _WritableFile newWritableFile(String f) {
+        return target_.newWritableFile(f);
     }
 
-    public boolean FileExists(String f) {
-        return target_.FileExists(f);
+    public boolean fileExists(String f) {
+        return target_.fileExists(f);
     }
 
-    public List<String> GetChildren(String dir) {
-        return target_.GetChildren(dir);
+    public List<String> getChildren(String dir) {
+        return target_.getChildren(dir);
     }
 
-    public Status DeleteFile(String f) {
-        return target_.DeleteFile(f);
+    public Status deleteFile(String f) {
+        return target_.deleteFile(f);
     }
 
-    public Status CreateDir(String d) {
-        return target_.CreateDir(d);
+    public Status createDir(String d) {
+        return target_.createDir(d);
     }
 
-    public Status DeleteDir(String d) {
-        return target_.DeleteDir(d);
+    public Status deleteDir(String d) {
+        return target_.deleteDir(d);
     }
 
-    public long GetFileSize(String f) {
-        return target_.GetFileSize(f);
+    public long getFileSize(String f) {
+        return target_.getFileSize(f);
     }
 
-    public Status RenameFile(String s, String t) {
-        return target_.RenameFile(s, t);
+    public Status renameFile(String s, String t) {
+        return target_.renameFile(s, t);
     }
 
-    public FileLock LockFile(String f) {
-        return target_.LockFile(f);
+    public FileLock lockFile(String f) {
+        return target_.lockFile(f);
     }
 
-    public Status UnlockFile(FileLock l) {
-        return target_.UnlockFile(l);
+    public Status unlockFile(FileLock l) {
+        return target_.unlockFile(l);
     }
 
-    public void Schedule(Function fun) {
-        target_.Schedule(fun);
+    public void schedule(Function fun) {
+        target_.schedule(fun);
     }
 
-    public void StartThread(Function fun) {
-        target_.StartThread(fun);
+    public void startThread(Function fun) {
+        target_.startThread(fun);
     }
 
-    public String GetTestDirectory() {
-        return target_.GetTestDirectory();
+    public String getTestDirectory() {
+        return target_.getTestDirectory();
     }
 
 
-    public long NowMicros() {
-        return target_.NowMicros();
+    public long nowMicros() {
+        return target_.nowMicros();
     }
 
-    public void SleepForMicroseconds(int micros) {
-        target_.SleepForMicroseconds(micros);
+    public void sleepForMicroseconds(int micros) {
+        target_.sleepForMicroseconds(micros);
     }
 
 
     @Override
-    public Logger NewLogger(String fname) {
-        return target_.NewLogger(fname);
+    public Logger newLogger(String fname) {
+        return target_.newLogger(fname);
     }
 
     private Env target_;

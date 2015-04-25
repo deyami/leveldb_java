@@ -152,7 +152,7 @@ public class Version {
         public Iterator exec(Object arg, ReadOptions options, Slice file_value) {
             TableCache cache = (TableCache) arg;
             if (file_value.size() != 16) { // number | size
-                return Iterator.newErrorIterator(Status.Corruption(new Slice(
+                return Iterator.newErrorIterator(Status.corruption(new Slice(
                         "FileReader invoked with unexpected value"), null));
             } else {
                 byte number_size[] = file_value.data();
@@ -195,7 +195,7 @@ public class Version {
 
     /*
      * If "iter" points at a value or deletion for user_key, store either the
-     * value, or a NotFound error and return true. Else return false.
+     * value, or a notFound error and return true. Else return false.
      */
     boolean GetValue(Comparator cmp, Iterator iter, Slice user_key,
                      Slice value, Status[] s) {
@@ -206,7 +206,7 @@ public class Version {
                 .ParseInternalKey_(iter.key());
 
         if (parsed_key == null) {
-            s[0] = Status.Corruption(new Slice("corrupted key for "), user_key);
+            s[0] = Status.corruption(new Slice("corrupted key for "), user_key);
             return true; // stop with error
         }
         if (cmp.Compare(parsed_key.user_key, user_key) != 0) {
@@ -214,7 +214,7 @@ public class Version {
         }
         switch (parsed_key.type.value) {
             case ValueType.kTypeDeletion:
-                s[0] = Status.NotFound(new Slice(), null);
+                s[0] = Status.notFound(new Slice(), null);
                 // Use an empty error message for speed
                 break; // stop with error
             case ValueType.kTypeValue: {
@@ -380,7 +380,7 @@ public class Version {
             }
         }
 
-        s[0] = Status.NotFound(new Slice(), null); // Use an empty error message
+        s[0] = Status.notFound(new Slice(), null); // Use an empty error message
         // for speed
         return null;
     }

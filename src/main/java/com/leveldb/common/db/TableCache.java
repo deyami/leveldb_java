@@ -97,7 +97,7 @@ public class TableCache {
             String fname = filename.TableFileName(dbname_, file_number);
             _RandomAccessFile file = null;
             Table table = null;
-            file = env_.NewRandomAccessFile(fname);
+            file = env_.newRandomAccessFile(fname);
 
             table = Table.Open(options_, file, file_size);
 

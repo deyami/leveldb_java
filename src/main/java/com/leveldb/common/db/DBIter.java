@@ -86,7 +86,7 @@ class DBIter extends Iterator {
     ParsedInternalKey ParseKey() {
         ParsedInternalKey lkey = InternalKey.ParseInternalKey_(iter_.key());
         if (lkey == null) {
-            status_ = Status.Corruption(new Slice(
+            status_ = Status.corruption(new Slice(
                     "corrupted internal key in DBIter"), null);
             return null;
         } else {

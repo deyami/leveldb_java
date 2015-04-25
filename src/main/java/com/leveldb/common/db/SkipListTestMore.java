@@ -332,7 +332,7 @@ public class SkipListTestMore {
             }
             TestState state = new TestState(0);// (seed + 1);
             ConcurrentReader cr = new ConcurrentReader(state);
-            Env.Default().Schedule(cr);// ConcurrentReader, state
+            Env.Default().schedule(cr);// ConcurrentReader, state
             state.Wait(TestState.ReaderState.RUNNING);
             for (int j = 0; j < kSize; j++) {
                 state.t_.WriteStep(rnd);

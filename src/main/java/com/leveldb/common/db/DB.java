@@ -30,7 +30,7 @@ public abstract class DB {
     // Note: consider setting options.sync = true.
     public Status Put(WriteOptions opt, Slice key, Slice value) {
         WriteBatch batch = new WriteBatch();
-        batch.Put(key, value);
+        batch.put(key, value);
         return Write(opt, batch); // call concrete Write
     }
 
@@ -40,7 +40,7 @@ public abstract class DB {
     // Note: consider setting options.sync = true.
     public Status Delete(WriteOptions opt, Slice key) {
         WriteBatch batch = new WriteBatch();
-        batch.Delete(key);
+        batch.delete(key);
         return Write(opt, batch);
     }
 
@@ -53,7 +53,7 @@ public abstract class DB {
     // corresponding value in value and return OK.
     //
     // If there is no entry for "key" leave value unchanged and return
-    // a status for which Status::IsNotFound() returns true.
+    // a status for which Status::isNotFound() returns true.
     //
     // May return some other Status on an error.
     public abstract Slice Get(ReadOptions options, Slice key, Status s);
@@ -119,7 +119,7 @@ public abstract class DB {
         // error_if_exists
         if (s.ok()) {
             long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.NewWritableFile(filename
+            _WritableFile lfile = options.env.newWritableFile(filename
                     .LogFileName(dbname, new_log_number));
             {
                 edit.setLogNumber(new_log_number);
@@ -153,7 +153,7 @@ public abstract class DB {
         // error_if_exists
         if (s.ok()) {
             long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.NewWritableFile(filename
+            _WritableFile lfile = options.env.newWritableFile(filename
                     .LogFileName(dbname, new_log_number));
             {
                 edit.setLogNumber(new_log_number);
@@ -188,7 +188,7 @@ public abstract class DB {
         List<String> filenames = new ArrayList<String>();
         // Ignore error in case directory does not exist
         try {
-            filenames = env.GetChildren(dbname);
+            filenames = env.getChildren(dbname);
         } catch (Exception e) {
             filenames = new ArrayList<String>();
         }
@@ -198,7 +198,7 @@ public abstract class DB {
 
         FileLock lock = null;
         String lockname = filename.LockFileName(dbname);
-        lock = env.LockFile(lockname);
+        lock = env.lockFile(lockname);
 
         Status s = Status.OK();
 
@@ -219,12 +219,12 @@ public abstract class DB {
                     // deleted
                     // at
                     // end
-                    s = env.DeleteFile(dbname + "/" + filenames.get(i));
+                    s = env.deleteFile(dbname + "/" + filenames.get(i));
                 }
             }
-            env.UnlockFile(lock); // Ignore error since state is already gone
-            env.DeleteFile(dbname + "/LOCK");
-            env.DeleteDir(dbname); // Ignore error in case dir contains other
+            env.unlockFile(lock); // Ignore error since state is already gone
+            env.deleteFile(dbname + "/LOCK");
+            env.deleteDir(dbname); // Ignore error in case dir contains other
             // files
         }
         return s;

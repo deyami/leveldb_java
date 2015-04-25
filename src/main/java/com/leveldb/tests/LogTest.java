@@ -90,7 +90,7 @@ public class LogTest {
                     e.printStackTrace();
                     return null;
                 }
-                // return Status::Corruption("read error");
+                // return Status::corruption("read error");
             }
 
             if (contents_.size() < n) {
@@ -106,7 +106,7 @@ public class LogTest {
         public Status Skip(long n) {
             if (n > contents_.size()) {
                 contents_.clear();
-                return Status.NotFound(new Slice(
+                return Status.notFound(new Slice(
                         "in-memory file skipepd past end"), null);
             }
 

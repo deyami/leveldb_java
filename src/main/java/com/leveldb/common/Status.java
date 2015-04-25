@@ -16,23 +16,23 @@ public class Status {
     }
 
     // Return error status of an appropriate type.
-    public static Status NotFound(Slice msg, Slice msg2) {
+    public static Status notFound(Slice msg, Slice msg2) {
         return new Status(Code.kNotFound, msg, msg2);
     }
 
-    public static Status Corruption(Slice msg, Slice msg2) {
+    public static Status corruption(Slice msg, Slice msg2) {
         return new Status(Code.kCorruption, msg, msg2);
     }
 
-    public static Status NotSupported(Slice msg, Slice msg2) {
+    public static Status notSupported(Slice msg, Slice msg2) {
         return new Status(Code.kNotSupported, msg, msg2);
     }
 
-    public static Status InvalidArgument(Slice msg, Slice msg2) {
+    public static Status invalidArgument(Slice msg, Slice msg2) {
         return new Status(Code.kInvalidArgument, msg, msg2);
     }
 
-    public static Status IOError(Slice msg, Slice msg2) {
+    public static Status ioerror(Slice msg, Slice msg2) {
         return new Status(Code.kIOError, msg, msg2);
     }
 
@@ -41,8 +41,8 @@ public class Status {
         return (state_ == null);
     }
 
-    // Returns true iff the status indicates a NotFound error.
-    public boolean IsNotFound() {
+    // Returns true iff the status indicates a notFound error.
+    public boolean isNotFound() {
         return code() == Code.kNotFound;
     }
 
@@ -58,10 +58,10 @@ public class Status {
                     type = "OK";
                     break;
                 case Code.kNotFound:
-                    type = "NotFound: ";
+                    type = "notFound: ";
                     break;
                 case Code.kCorruption:
-                    type = "Corruption: ";
+                    type = "corruption: ";
                     break;
                 case Code.kNotSupported:
                     type = "Not implemented: ";
@@ -132,17 +132,17 @@ public class Status {
 
     ;
 
-    public static byte[] CopyState(byte[] s) {
+    public static byte[] copyState(byte[] s) {
         byte[] ret = new byte[s.length];
         System.arraycopy(s, 0, ret, 0, s.length);
         return ret;
     }
 
     public Status(Status s) {
-        state_ = (s.state_ == null) ? null : CopyState(s.state_);
+        state_ = (s.state_ == null) ? null : copyState(s.state_);
     }
 
     public void Status_(Status s) {
-        state_ = (s.state_ == null) ? null : CopyState(s.state_);
+        state_ = (s.state_ == null) ? null : copyState(s.state_);
     }
 }

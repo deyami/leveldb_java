@@ -35,7 +35,7 @@ public class DBTest extends TestCase {
             no_space_.Release_Store(null);
         }
 
-        public _WritableFile NewWritableFile(String f) {
+        public _WritableFile newWritableFile(String f) {
             _WritableFile r;
             class SSTableFile extends _WritableFile {
                 SpecialEnv env_;
@@ -66,13 +66,13 @@ public class DBTest extends TestCase {
 
                 public Status Sync() {
                     while (env_.delay_sstable_sync_.Acquire_Load() != null) {
-                        env_.SleepForMicroseconds(100000);
+                        env_.sleepForMicroseconds(100000);
                     }
                     return base_.Sync();
                 }
             }
 
-            r = target().NewWritableFile(f);
+            r = target().newWritableFile(f);
             if (f.contains(".sst")) {
                 r = new SSTableFile(this, r);
             }
@@ -184,7 +184,7 @@ public class DBTest extends TestCase {
         options.snapshot = snapshot;
         Status s = new Status();
         Slice result = db_.Get(options, k, s);
-        if (s.IsNotFound()) {
+        if (s.isNotFound()) {
             result = new Slice("NOT_FOUND");
         } else if (!s.ok()) {
             result = new Slice(s.toString());
@@ -318,7 +318,7 @@ public class DBTest extends TestCase {
     }
 
     int CountFiles() {
-        List<String> files = env_.GetChildren(dbname_);
+        List<String> files = env_.getChildren(dbname_);
         return files.size();
     }
 
@@ -1225,7 +1225,7 @@ public class DBTest extends TestCase {
         Reopen();
         Reopen();
         ASSERT_EQ("(a->v)", Contents());
-        env_.SleepForMicroseconds(10); // Wait for compaction to finish
+        env_.sleepForMicroseconds(10); // Wait for compaction to finish
         ASSERT_EQ("(a->v)", Contents());
     }
 
@@ -1244,7 +1244,7 @@ public class DBTest extends TestCase {
         Put("", "");
         Reopen();
         Put("", "");
-        env_.SleepForMicroseconds(10); // Wait for compaction to finish
+        env_.sleepForMicroseconds(10); // Wait for compaction to finish
         Reopen();
         Put("d", "dv");
         Reopen();
@@ -1254,7 +1254,7 @@ public class DBTest extends TestCase {
         Delete("b");
         Reopen();
         ASSERT_EQ("(->)(c->cv)", Contents());
-        env_.SleepForMicroseconds(10); // Wait for compaction to finish
+        env_.sleepForMicroseconds(10); // Wait for compaction to finish
         ASSERT_EQ("(->)(c->cv)", Contents());
     }
 

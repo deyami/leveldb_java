@@ -234,7 +234,7 @@ public class Block {
         private void CorruptionError() {
             current_ = restarts_;
             restart_index_ = num_restarts_;
-            status_ = Status.Corruption(new Slice("bad entry in block"), null);
+            status_ = Status.corruption(new Slice("bad entry in block"), null);
             key_.clear();
             value_.clear();
         }
@@ -353,7 +353,7 @@ public class Block {
 
     public Iterator NewIterator(Comparator cmp) {
         if (size_ < 2 * util.SIZEOF_INT) {
-            return Iterator.newErrorIterator(Status.Corruption(new Slice(
+            return Iterator.newErrorIterator(Status.corruption(new Slice(
                     "bad block contents"), null));
         }
         int num_restarts = NumRestarts();

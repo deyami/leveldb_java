@@ -30,7 +30,7 @@ public class TableBuilder {
         // this function to catch changes that should not be allowed to
         // change in the middle of building a Table.
         if (options.comparator != rep_.options.comparator) {
-            return Status.InvalidArgument(new Slice(
+            return Status.invalidArgument(new Slice(
                     "changing comparator while building table"), null);
         }
 

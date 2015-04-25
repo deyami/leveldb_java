@@ -52,7 +52,7 @@ public class util {
     }
 
     /**
-     * Put an int value out to the specified byte array position.
+     * put an int value out to the specified byte array position.
      *
      * @param bytes  the byte array
      * @param offset position in the array
@@ -136,7 +136,7 @@ public class util {
     }
 
     /**
-     * Put a long value out to the specified byte array position.
+     * put a long value out to the specified byte array position.
      *
      * @param bytes  the byte array
      * @param offset position in the array

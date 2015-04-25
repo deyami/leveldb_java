@@ -137,7 +137,7 @@ public class MemTable {
         ++refs_;
     }
 
-    // Drop reference count. Delete if no more references exist.
+    // Drop reference count. delete if no more references exist.
     public void Unref() {
         --refs_;
         assert (refs_ >= 0);
@@ -193,7 +193,7 @@ public class MemTable {
     }
 
     // If memtable contains a value for key, store it in *value and return true.
-    // If memtable contains a deletion for key, store a NotFound() error
+    // If memtable contains a deletion for key, store a notFound() error
     // in *status and return true.
     // Else, return false.
     public Slice Get(LookupKey key, Slice value, Status s) {

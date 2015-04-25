@@ -71,7 +71,7 @@ public class Footer {
         int real_lo = (int) (kTableMagicNumber & 0xffffffff);
         int real_hi = (int) (kTableMagicNumber >> 32);
         if ((magic_lo != real_lo) || (magic_hi != real_hi)) {
-            return Status.InvalidArgument(new Slice(
+            return Status.invalidArgument(new Slice(
                     "not an sstable (bad magic number)"), null);
         }
 

@@ -111,7 +111,7 @@ public class Table {
                             block_cache, cache_handle);
                 }
             } else {
-                iter = Iterator.newErrorIterator(Status.IOError(new Slice(
+                iter = Iterator.newErrorIterator(Status.ioerror(new Slice(
                         "block null"), null));
             }
             return iter;

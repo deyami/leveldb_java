@@ -89,7 +89,7 @@ public class DefaultWritableFile extends _WritableFile {
 
         } catch (IOException e) {
             e.printStackTrace();
-            return Status.IOError(new Slice(e.getMessage()), null);
+            return Status.ioerror(new Slice(e.getMessage()), null);
         }
 
         return Status.OK();
@@ -102,7 +102,7 @@ public class DefaultWritableFile extends _WritableFile {
 //			System.err.println("Closed " + filename_);
         } catch (IOException e) {
             e.printStackTrace();
-            return Status.IOError(new Slice(e.toString()), null);
+            return Status.ioerror(new Slice(e.toString()), null);
         }
         return Status.OK();
     }

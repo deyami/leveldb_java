@@ -30,7 +30,7 @@ public class WriteBatch {
 
     public WriteBatch() {
         rep_ = new ByteCollection(null, -1);
-        Clear();
+        clear();
     }
 
     /**
@@ -40,44 +40,44 @@ public class WriteBatch {
      * @param key
      * @param value
      */
-    public void Put(Slice key, Slice value) { //
-        WriteBatchInternal.SetCount(this, WriteBatchInternal.Count(this) + 1);
+    public void put(Slice key, Slice value) { //
+        WriteBatchInternal.SetCount(this, WriteBatchInternal.count(this) + 1);
         rep_.bytes = util.add(rep_.bytes, util.toBytes(ValueType.kTypeValue),
                 coding.putLengthPrefixedSlice(key),
                 coding.putLengthPrefixedSlice(value));
     }
 
     // If the database contains a mapping for "key", erase it. Else do nothing.
-    public void Delete(Slice key) {//
-        WriteBatchInternal.SetCount(this, WriteBatchInternal.Count(this) + 1);
+    public void delete(Slice key) {//
+        WriteBatchInternal.SetCount(this, WriteBatchInternal.count(this) + 1);
         rep_.bytes = util.add(rep_.bytes,
                 util.toBytes(ValueType.kTypeDeletion),
                 coding.putLengthPrefixedSlice(key));
     }
 
     // clear all updates buffered in this batch.
-    public void Clear() {
+    public void clear() {
         rep_.bytes = new byte[kHeader];
     }
 
     // Support for iterating over the contents of a batch.
     public abstract class Handler {
-        abstract void Put(Slice key, Slice value);
+        abstract void put(Slice key, Slice value);
 
-        abstract void Delete(Slice key);
+        abstract void delete(Slice key);
     }
 
     /**
-     * Iterate over all records (#=count) and Put them by the Handler
+     * iterate over all records (#=count) and put them by the Handler
      *
      * @param handler {@see #Handler}
      * @return
      */
-    public Status Iterate(Handler handler) {
+    public Status iterate(Handler handler) {
         Slice input = new Slice(rep_.bytes);
         rep_.curr_pos = 0;
         if (input.size() < kHeader) {
-            return Status.Corruption(new Slice(
+            return Status.corruption(new Slice(
                     "malformed WriteBatch (too small)"), null);
         }
 
@@ -95,10 +95,10 @@ public class WriteBatch {
                     try {
                         key = coding.getLengthPrefixedSlice(rep_);
                         value = coding.getLengthPrefixedSlice(rep_);
-                        handler.Put(key, value);
+                        handler.put(key, value);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        return Status.Corruption(new Slice("bad WriteBatch Put"),
+                        return Status.corruption(new Slice("bad WriteBatch put"),
                                 null);
                     }
                     break;
@@ -106,20 +106,20 @@ public class WriteBatch {
                     try {
                         key = coding.getLengthPrefixedSlice(rep_);
 
-                        handler.Delete(key);
+                        handler.delete(key);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        return Status.Corruption(
-                                new Slice("bad WriteBatch Delete"), null);
+                        return Status.corruption(
+                                new Slice("bad WriteBatch delete"), null);
                     }
                     break;
                 default:
-                    return Status.Corruption(new Slice("unknown WriteBatch tag"),
+                    return Status.corruption(new Slice("unknown WriteBatch tag"),
                             null);
             }
         }
-        if (found != WriteBatchInternal.Count(this)) {
-            return Status.Corruption(new Slice("WriteBatch has wrong count"),
+        if (found != WriteBatchInternal.count(this)) {
+            return Status.corruption(new Slice("WriteBatch has wrong count"),
                     null);
         } else {
             return Status.OK();
@@ -138,12 +138,12 @@ public class WriteBatch {
         SequenceNumber sequence_;
         MemTable mem_;
 
-        void Put(Slice key, Slice value) {
+        void put(Slice key, Slice value) {
             mem_.Add(sequence_, ValueType.kTypeValue, key, value);
             sequence_.value++;
         }
 
-        void Delete(Slice key) {
+        void delete(Slice key) {
             mem_.Add(sequence_, ValueType.kTypeDeletion, key, new Slice());
             sequence_.value++;
         }

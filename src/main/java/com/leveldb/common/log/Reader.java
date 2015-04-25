@@ -326,7 +326,7 @@ public class Reader {
     // Reports dropped bytes to the reporter.
     // buffer_ must be updated to remove the dropped bytes prior to invocation.
     void ReportCorruption(int bytes, String reason) {
-        ReportDrop(bytes, Status.Corruption(new Slice(reason), null));
+        ReportDrop(bytes, Status.corruption(new Slice(reason), null));
     }
 
     void ReportDrop(int bytes, Status reason) {

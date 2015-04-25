@@ -40,7 +40,7 @@ public class WriteBatchTest extends TestCase {
             ASSERT_TRUE(ikey != null);
             switch (ikey.type.value) {
                 case ValueType.kTypeValue:
-                    state.append("Put(");
+                    state.append("put(");
                     state.append(ikey.user_key.toString());
                     state.append(", ");
                     state.append(iter.value().toString());
@@ -48,7 +48,7 @@ public class WriteBatchTest extends TestCase {
                     count++;
                     break;
                 case ValueType.kTypeDeletion:
-                    state.append("Delete(");
+                    state.append("delete(");
                     state.append(ikey.user_key.toString());
                     state.append(")");
                     count++;
@@ -60,7 +60,7 @@ public class WriteBatchTest extends TestCase {
         iter = null;
         if (!s.ok()) {
             state.append("ParseError()");
-        } else if (count != WriteBatchInternal.Count(b)) {
+        } else if (count != WriteBatchInternal.count(b)) {
             state.append("CountMismatch()");
         }
         mem.Unref();
@@ -70,19 +70,19 @@ public class WriteBatchTest extends TestCase {
     public void testEmpty() {
         WriteBatch batch = new WriteBatch();
         ASSERT_TRUE("".compareTo(PrintContents(batch)) == 0);
-        ASSERT_TRUE(0 == WriteBatchInternal.Count(batch));
+        ASSERT_TRUE(0 == WriteBatchInternal.count(batch));
     }
 
     public void testMultiple() {
         WriteBatch batch = new WriteBatch();
-        batch.Put(new Slice("foo"), new Slice("bar"));
-        batch.Delete(new Slice("box"));
-        batch.Put(new Slice("baz"), new Slice("boo"));
+        batch.put(new Slice("foo"), new Slice("bar"));
+        batch.delete(new Slice("box"));
+        batch.put(new Slice("baz"), new Slice("boo"));
         WriteBatchInternal.SetSequence(batch, 100);
         ASSERT_TRUE(100 == WriteBatchInternal.Sequence(batch).value);
-        ASSERT_TRUE(3 == WriteBatchInternal.Count(batch));
+        ASSERT_TRUE(3 == WriteBatchInternal.count(batch));
         ASSERT_TRUE(
-                "Put(baz, boo)@102Delete(box)@101Put(foo, bar)@100"
+                "put(baz, boo)@102Delete(box)@101Put(foo, bar)@100"
                         .compareTo(PrintContents(batch)) == 0,
                 PrintContents(batch));
     }
@@ -93,14 +93,14 @@ public class WriteBatchTest extends TestCase {
      */
     public void testCorruption() {
         WriteBatch batch = new WriteBatch();
-        batch.Put(new Slice("foo"), new Slice("bar"));
-        batch.Delete(new Slice("box"));
+        batch.put(new Slice("foo"), new Slice("bar"));
+        batch.delete(new Slice("box"));
         WriteBatchInternal.SetSequence(batch, 200);
         Slice contents = WriteBatchInternal.Contents(batch);
         WriteBatchInternal.SetContents(batch, new Slice(contents.data(),
                 contents.size() - 1));
         ASSERT_TRUE(
-                "Put(foo, bar)@200ParseError()".compareTo(PrintContents(batch)) == 0,
+                "put(foo, bar)@200ParseError()".compareTo(PrintContents(batch)) == 0,
                 PrintContents(batch));
     }
 
@@ -110,16 +110,16 @@ public class WriteBatchTest extends TestCase {
         WriteBatchInternal.SetSequence(b2, 300);
         WriteBatchInternal.Append(b1, b2);
         ASSERT_TRUE("".compareTo(PrintContents(b1)) == 0);
-        b2.Put(new Slice("a"), new Slice("va"));
+        b2.put(new Slice("a"), new Slice("va"));
         WriteBatchInternal.Append(b1, b2);
-        ASSERT_TRUE("Put(a, va)@200".compareTo(PrintContents(b1)) == 0);
-        b2.Clear();
-        b2.Put(new Slice("b"), new Slice("vb"));
+        ASSERT_TRUE("put(a, va)@200".compareTo(PrintContents(b1)) == 0);
+        b2.clear();
+        b2.put(new Slice("b"), new Slice("vb"));
         WriteBatchInternal.Append(b1, b2);
-        ASSERT_TRUE("Put(a, va)@200Put(b, vb)@201".compareTo(PrintContents(b1)) == 0);
-        b2.Delete(new Slice("foo"));
+        ASSERT_TRUE("put(a, va)@200Put(b, vb)@201".compareTo(PrintContents(b1)) == 0);
+        b2.delete(new Slice("foo"));
         WriteBatchInternal.Append(b1, b2);
-        ASSERT_TRUE("Put(a, va)@200Put(b, vb)@202Put(b, vb)@201Delete(foo)@203"
+        ASSERT_TRUE("put(a, va)@200Put(b, vb)@202Put(b, vb)@201Delete(foo)@203"
                 .compareTo(PrintContents(b1)) == 0);
     }
 

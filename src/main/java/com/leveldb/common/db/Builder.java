@@ -24,7 +24,7 @@ public class Builder {
 
         String fname = filename.TableFileName(dbname, meta.getNumber());
         if (iter.valid()) {
-            _WritableFile file = env.NewWritableFile(fname);
+            _WritableFile file = env.newWritableFile(fname);
 
             TableBuilder builder = new TableBuilder(options, file);
             meta.getSmallest().DecodeFrom(iter.key());
@@ -72,7 +72,7 @@ public class Builder {
         if (s.ok() && meta.getFile_size() > 0) {
             // Keep it
         } else {
-            env.DeleteFile(fname);
+            env.deleteFile(fname);
         }
         return s;
     }

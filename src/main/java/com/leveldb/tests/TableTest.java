@@ -167,7 +167,7 @@ public class TableTest extends TestCase {
         public byte[] Read(long offset, int n, Slice result) {
             if (offset > contents_.getSize()) {
                 return null;
-                // return Status.InvalidArgument(new
+                // return Status.invalidArgument(new
                 // Slice("invalid Read offset"), null);
             }
             if (offset + n > contents_.getSize()) {
@@ -412,7 +412,7 @@ public class TableTest extends TestCase {
             ParsedInternalKey key = null;
             key = InternalKey.ParseInternalKey_(iter_.key());
             if (key == null) {
-                status_ = Status.Corruption(
+                status_ = Status.corruption(
                         new Slice("malformed internal key"), null);
                 return new Slice("corrupted key");
             }
@@ -479,7 +479,7 @@ public class TableTest extends TestCase {
             NewDB();
             for (byte[] it : data.keySet()) {
                 WriteBatch batch = new WriteBatch();
-                batch.Put(new Slice(it), new Slice(data.get(it)));
+                batch.put(new Slice(it), new Slice(data.get(it)));
                 ASSERT_TRUE(db_.Write(new WriteOptions(), batch).ok(),
                         "db_ Write batch error");
             }
@@ -1066,7 +1066,7 @@ public class TableTest extends TestCase {
 
 
     public static String TmpDir() {
-        String dir = Env.Default().GetTestDirectory();
+        String dir = Env.Default().getTestDirectory();
 
         return dir;
     }
@@ -1081,10 +1081,10 @@ public class TableTest extends TestCase {
         memtable.Ref();
         WriteBatch batch = new WriteBatch();
         WriteBatchInternal.SetSequence(batch, 100);
-        batch.Put(new Slice("k1"), new Slice("v1"));
-        batch.Put(new Slice("k2"), new Slice("v2"));
-        batch.Put(new Slice("k3"), new Slice("v3"));
-        batch.Put(new Slice("largekey"), new Slice("vlarge"));
+        batch.put(new Slice("k1"), new Slice("v1"));
+        batch.put(new Slice("k2"), new Slice("v2"));
+        batch.put(new Slice("k3"), new Slice("v3"));
+        batch.put(new Slice("largekey"), new Slice("vlarge"));
         ASSERT_TRUE(WriteBatchInternal.InsertInto(batch, memtable).ok(),
                 "insert to batch wrong");
 

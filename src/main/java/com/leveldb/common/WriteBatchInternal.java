@@ -15,7 +15,7 @@ public class WriteBatchInternal {
      * @param batch
      * @return
      */
-    public static int Count(WriteBatch batch) {
+    public static int count(WriteBatch batch) {
         return util.toInt(batch.rep_.bytes, 8);
     }
 
@@ -56,11 +56,11 @@ public class WriteBatchInternal {
         MemTableInserter inserter = b.inserter;
         inserter.sequence_ = WriteBatchInternal.Sequence(b);
         inserter.mem_ = memtable;
-        return b.Iterate(inserter);
+        return b.iterate(inserter);
     }
 
     public static void Append(WriteBatch dst, WriteBatch src) {
-        SetCount(dst, Count(dst) + Count(src));
+        SetCount(dst, count(dst) + count(src));
         assert (src.rep_.bytes.length >= WriteBatch.kHeader);
         byte[] src_ = src.rep_.bytes;
         dst.rep_.bytes = util.add(dst.rep_.bytes,

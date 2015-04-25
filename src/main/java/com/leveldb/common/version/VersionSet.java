@@ -148,7 +148,7 @@ public class VersionSet {
                         .getSecond().Encode().toString();
             }
 
-            // Delete files
+            // delete files
             Set<Pair<Integer, Long>> del = edit.deleted_files_;
             java.util.Iterator<Pair<Integer, Long>> iter = del.iterator();
             while (iter.hasNext()) {
@@ -350,7 +350,7 @@ public class VersionSet {
             new_manifest_file = filename.DescriptorFileName(dbname_,
                     manifest_file_number_);
             edit.setNextFile(next_file_number_);
-            descriptor_file_ = env_.NewWritableFile(new_manifest_file);
+            descriptor_file_ = env_.newWritableFile(new_manifest_file);
             descriptor_log_ = new Writer(descriptor_file_);
             s = WriteSnapshot(descriptor_log_);
         }
@@ -389,7 +389,7 @@ public class VersionSet {
                 descriptor_log_ = null;
                 descriptor_file_.Close();
                 descriptor_file_ = null;
-                env_.DeleteFile(new_manifest_file);
+                env_.deleteFile(new_manifest_file);
             }
         }
 
@@ -410,18 +410,18 @@ public class VersionSet {
 
         // Read "CURRENT" file, which contains a pointer to the current manifest
         // file
-        String current = Env.ReadFileToString(env_,
+        String current = Env.readFileToString(env_,
                 filename.CurrentFileName(dbname_));
 
         if (current == null || current.length() == 0
                 || current.charAt(current.length() - 1) != '\n') {
-            return Status.Corruption(new Slice(
+            return Status.corruption(new Slice(
                     "CURRENT file does not end with newline"), null);
         }
         current = current.substring(0, current.length() - 1);
 
         String dscname = dbname_ + "/" + current;
-        _SequentialFile file = env_.NewSequentialFile(dscname);
+        _SequentialFile file = env_.newSequentialFile(dscname);
 
         boolean have_log_number = false;
         boolean have_prev_log_number = false;
@@ -448,7 +448,7 @@ public class VersionSet {
                     if (edit.has_comparator_
                             && edit.comparator_.compareTo(icmp_
                             .user_comparator().Name()) != 0) {
-                        s = Status.InvalidArgument(new Slice(edit.comparator_
+                        s = Status.invalidArgument(new Slice(edit.comparator_
                                         + "does not match existing comparator "),
                                 new Slice(icmp_.user_comparator().Name()));
                     }
@@ -482,13 +482,13 @@ public class VersionSet {
 
         if (s.ok()) {
             if (!have_next_file) {
-                s = Status.Corruption(new Slice(
+                s = Status.corruption(new Slice(
                         "no meta-nextfile entry in descriptor"), null);
             } else if (!have_log_number) {
-                s = Status.Corruption(new Slice(
+                s = Status.corruption(new Slice(
                         "no meta-lognumber entry in descriptor"), null);
             } else if (!have_last_sequence) {
-                s = Status.Corruption(new Slice(
+                s = Status.corruption(new Slice(
                         "no last-sequence-number entry in descriptor"), null);
             }
 

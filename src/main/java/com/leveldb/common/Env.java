@@ -34,7 +34,7 @@ public abstract class Env {
     // not exist, returns a non-OK status.
     //
     // The returned file will only be accessed by one thread at a time.
-    public abstract _SequentialFile NewSequentialFile(String fname); // wlu
+    public abstract _SequentialFile newSequentialFile(String fname); // wlu
 
     // Create a brand new random access read-only file with the
     // specified name. On success, stores a pointer to the new file in
@@ -43,7 +43,7 @@ public abstract class Env {
     // status.
     //
     // The returned file may be concurrently accessed by multiple threads.
-    public abstract _RandomAccessFile NewRandomAccessFile(String fname);
+    public abstract _RandomAccessFile newRandomAccessFile(String fname);
 
     // Create an object that writes to a new file with the specified
     // name. Deletes any existing file with the same name and creates a
@@ -52,30 +52,30 @@ public abstract class Env {
     // returns non-OK.
     //
     // The returned file will only be accessed by one thread at a time.
-    public abstract _WritableFile NewWritableFile(String fname);
+    public abstract _WritableFile newWritableFile(String fname);
 
     // Returns true iff the named file exists.
-    public abstract boolean FileExists(String fname);
+    public abstract boolean fileExists(String fname);
 
     // Store in *result the names of the children of the specified directory.
     // The names are relative to "dir".
     // Original contents of *results are dropped.
-    public abstract List<String> GetChildren(String dir);
+    public abstract List<String> getChildren(String dir);
 
-    // Delete the named file.
-    public abstract Status DeleteFile(String fname);
+    // delete the named file.
+    public abstract Status deleteFile(String fname);
 
     // Create the specified directory.
-    public abstract Status CreateDir(String dirname);
+    public abstract Status createDir(String dirname);
 
-    // Delete the specified directory.
-    public abstract Status DeleteDir(String dirname);
+    // delete the specified directory.
+    public abstract Status deleteDir(String dirname);
 
     // Store the size of fname in *file_size.
-    public abstract long GetFileSize(String fname);
+    public abstract long getFileSize(String fname);
 
     // Rename file src to target.
-    public abstract Status RenameFile(String src, String target);
+    public abstract Status renameFile(String src, String target);
 
     // Lock the specified file. Used to prevent concurrent access to
     // the same db by multiple processes. On failure, stores NULL in
@@ -83,7 +83,7 @@ public abstract class Env {
     //
     // On success, stores a pointer to the object that represents the
     // acquired lock in *lock and returns OK. The caller should call
-    // UnlockFile(*lock) to release the lock. If the process exits,
+    // unlockFile(*lock) to release the lock. If the process exits,
     // the lock will be automatically released.
     //
     // If somebody else already holds the lock, finishes immediately
@@ -91,12 +91,12 @@ public abstract class Env {
     // to go away.
     //
     // May create the named file if it does not already exist.
-    public abstract FileLock LockFile(String fname);
+    public abstract FileLock lockFile(String fname);
 
-    // release the lock acquired by a previous successful call to LockFile.
-    // REQUIRES: lock was returned by a successful LockFile() call
+    // release the lock acquired by a previous successful call to lockFile.
+    // REQUIRES: lock was returned by a successful lockFile() call
     // REQUIRES: lock has not already been unlocked.
-    public abstract Status UnlockFile(FileLock lock);
+    public abstract Status unlockFile(FileLock lock);
 
     // Arrange to run "(*function)(arg)" once in a background thread.
     //
@@ -104,29 +104,29 @@ public abstract class Env {
     // added to the same Env may run concurrently in different threads.
     // I.e., the caller may not assume that background work items are
     // serialized.
-    // void Schedule(
+    // void schedule(
     // void (*function)(void* arg),
     // void* arg) ;
-    public abstract void Schedule(Function fun);
+    public abstract void schedule(Function fun);
 
-    public void EndSchedule() {
+    public void endSchedule() {
     }
 
     ;
 
     // Start a new thread, invoking "function(arg)" within the new thread.
     // When "function(arg)" returns, the thread will be destroyed.
-    public abstract void StartThread(Function fun);
+    public abstract void startThread(Function fun);
 
     // *path is set to a temporary directory that can be used for testing. It
     // may
     // or many not have just been created. The directory may or may not differ
     // between runs of the same process, but subsequent calls will return the
     // same directory.
-    public abstract String GetTestDirectory();
+    public abstract String getTestDirectory();
 
     // Create and return a log file for storing informational messages.
-    public abstract Logger NewLogger(String fname);
+    public abstract Logger newLogger(String fname);
 
     // Write an entry to the log file with the specified format.
     // public abstract void Logv(_WritableFile log, String format, Object...
@@ -134,10 +134,10 @@ public abstract class Env {
 
     // Returns the number of micro-seconds since some fixed point in time. Only
     // useful for computing deltas of time.
-    public abstract long NowMicros();
+    public abstract long nowMicros();
 
     // Sleep/delay the thread for the perscribed number of micro-seconds.
-    public abstract void SleepForMicroseconds(int micros);
+    public abstract void sleepForMicroseconds(int micros);
 
     // Log the specified data to *info_log if info_log is non-NULL.
     // TODO
@@ -147,10 +147,10 @@ public abstract class Env {
 
     // A utility routine: write "data" to the named file.
     // TODO
-    public static Status WriteStringToFile(Env env, Slice data, String fname) {
+    public static Status writeStringToFile(Env env, Slice data, String fname) {
         return null;
         /*
-		 * env.cc WritableFile* file; Status s = env->NewWritableFile(fname,
+		 * env.cc WritableFile* file; Status s = env->newWritableFile(fname,
 		 * &file); if (!s.ok()) { return s; } s = file->Append(data); if
 		 * (s.ok()) { s = file->Close(); } delete file; // Will auto-close if we
 		 * did not close above if (!s.ok()) { env->deleteFile(fname); } return
@@ -158,13 +158,13 @@ public abstract class Env {
 		 */
     }
 
-    public static Status WriteStringToFileSync(Env env, Slice data, String fname) {
-        return DoWriteStringToFile(env, data, fname, true);
+    public static Status writeStringToFileSync(Env env, Slice data, String fname) {
+        return doWriteStringToFile(env, data, fname, true);
     }
 
-    public static Status DoWriteStringToFile(Env env, Slice data, String fname,
+    public static Status doWriteStringToFile(Env env, Slice data, String fname,
                                              boolean should_sync) {
-        _WritableFile file = env.NewWritableFile(fname);
+        _WritableFile file = env.newWritableFile(fname);
 
         Status s = file.Append(data);
         if (s.ok() && should_sync) {
@@ -175,15 +175,15 @@ public abstract class Env {
         }
         file = null; // Will auto-close if we did not close above
         if (!s.ok()) {
-            env.DeleteFile(fname);
+            env.deleteFile(fname);
         }
         return s;
     }
 
     // A utility routine: read contents of named file into *data
-    public static String ReadFileToString(Env env, String fname) {
+    public static String readFileToString(Env env, String fname) {
         ByteVector data = new ByteVector(128);
-        _SequentialFile file = env.NewSequentialFile(fname);
+        _SequentialFile file = env.newSequentialFile(fname);
 
         int kBufferSize = 8192;
         while (true) {
@@ -199,9 +199,4 @@ public abstract class Env {
         file.Close();
         return data.toString();
     }
-    // # if defined(__GNUC__) || defined(__clang__)
-    // __attribute__((__format__ (__printf__, 3, 4)))
-    // # endif
-    // ;
-
 }

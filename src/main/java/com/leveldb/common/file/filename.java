@@ -107,13 +107,13 @@ public class filename {
         assert (manifest.startsWith(dbname + "/"));
         contents = contents.substring(dbname.length() + 1);
         String tmp = filename.TempFileName(dbname, descriptor_number);
-        Status s = Env.WriteStringToFileSync(env, new Slice(contents + "\n"),
+        Status s = Env.writeStringToFileSync(env, new Slice(contents + "\n"),
                 tmp);
         if (s.ok()) {
-            s = env.RenameFile(tmp, filename.CurrentFileName(dbname));
+            s = env.renameFile(tmp, filename.CurrentFileName(dbname));
         }
         if (!s.ok()) {
-            env.DeleteFile(tmp);
+            env.deleteFile(tmp);
         }
         return s;
     }

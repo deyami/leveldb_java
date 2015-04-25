@@ -187,10 +187,10 @@ public class DBImpl extends DB {
         ClipToRange(result.block_size, 1 << 10, 4 << 20);
         if (result.info_log == null) {
             // Open a log file in the same directory as the db
-            src.env.CreateDir(dbname); // In case it does not exist
-            src.env.RenameFile(filename.InfoLogFileName(dbname),
+            src.env.createDir(dbname); // In case it does not exist
+            src.env.renameFile(filename.InfoLogFileName(dbname),
                     filename.OldInfoLogFileName(dbname));
-            result.info_log = src.env.NewLogger(filename
+            result.info_log = src.env.newLogger(filename
                     .InfoLogFileName(dbname));
             // if (!s.ok()) {
             // // No place suitable for logging
@@ -277,7 +277,7 @@ public class DBImpl extends DB {
                 WriteBatch updates = BuildBatchGroup(last_writer);
                 WriteBatchInternal
                         .SetSequence(updates, last_sequence.value + 1);
-                last_sequence.value += WriteBatchInternal.Count(updates);
+                last_sequence.value += WriteBatchInternal.count(updates);
 
                 // Add to log and apply to memtable. We can release the lock
                 // during this phase since &w is currently responsible for
@@ -297,7 +297,7 @@ public class DBImpl extends DB {
                     mutex_.lock();
                 }
                 if (updates == tmp_batch_)
-                    tmp_batch_.Clear();
+                    tmp_batch_.clear();
 
                 versions_.SetLastSequence(last_sequence);
             }
@@ -347,7 +347,7 @@ public class DBImpl extends DB {
                 // this delay hands over some CPU to the compaction thread in
                 // case it is sharing the same core as the writer.
                 mutex_.unlock();
-                env_.SleepForMicroseconds(1000);
+                env_.sleepForMicroseconds(1000);
                 allow_delay = false; // Do not delay a single write more than
                 // once
                 mutex_.lock();
@@ -368,7 +368,7 @@ public class DBImpl extends DB {
                 // old
                 assert (versions_.PrevLogNumber() == 0);
                 long new_log_number = versions_.NewFileNumber();
-                _WritableFile lfile = env_.NewWritableFile(filename
+                _WritableFile lfile = env_.newWritableFile(filename
                         .LogFileName(dbname_, new_log_number));
                 if (!s.ok()) {
                     break;
@@ -433,7 +433,7 @@ public class DBImpl extends DB {
                     // Switch to temporary batch instead of disturbing caller's
                     // batch
                     result = tmp_batch_;
-                    assert (WriteBatchInternal.Count(result) == 0);
+                    assert (WriteBatchInternal.count(result) == 0);
                     WriteBatchInternal.Append(result, first.batch);
                 }
                 WriteBatchInternal.Append(result, w.batch);
@@ -498,7 +498,7 @@ public class DBImpl extends DB {
 
         mutex_.unlock();
         if (result.size() == 0) {
-            st.Status_(Status.NotFound(
+            st.Status_(Status.notFound(
                     new Slice("value of key '" + key.toString()
                             + "' is not found."), null));
         }
@@ -532,7 +532,7 @@ public class DBImpl extends DB {
 
         // Make the output file
         String fname = filename.TableFileName(dbname_, file_number);
-        compact.outfile = env_.NewWritableFile(fname);
+        compact.outfile = env_.newWritableFile(fname);
         compact.builder = new TableBuilder(options_, compact.outfile);
         return Status.OK();
     }
@@ -551,7 +551,7 @@ public class DBImpl extends DB {
         mutex_.unlock();
 
         if (db_lock_ != null) {
-            env_.UnlockFile(db_lock_);
+            env_.unlockFile(db_lock_);
         }
 
         versions_.Close();// close the files
@@ -585,7 +585,7 @@ public class DBImpl extends DB {
         }
 
         // terminate the scheduled threads
-        env_.EndSchedule();
+        env_.endSchedule();
 
     }
 
@@ -687,7 +687,7 @@ public class DBImpl extends DB {
      * @return
      */
     Status DoCompactionWork(CompactionState compact) {
-        long start_micros = env_.NowMicros();
+        long start_micros = env_.nowMicros();
         long imm_micros = 0; // Micros spent doing imm_ compactions
 
         LOG.info("Compacting " + compact.compaction.num_input_files(0) + "@"
@@ -717,7 +717,7 @@ public class DBImpl extends DB {
         for (; input.valid() && !shutting_down_.get(); ) {
             // Prioritize immutable compaction work
             if (has_imm_.NoBarrier_Load() != null) {
-                long imm_start = env_.NowMicros();
+                long imm_start = env_.nowMicros();
                 mutex_.lock();
                 if (imm_ != null) {
                     CompactMemTable();
@@ -725,7 +725,7 @@ public class DBImpl extends DB {
                     // necessary
                 }
                 mutex_.unlock();
-                imm_micros += (env_.NowMicros() - imm_start);
+                imm_micros += (env_.nowMicros() - imm_start);
             }
 
             Slice key = input.key();
@@ -815,7 +815,7 @@ public class DBImpl extends DB {
         }
 
         if (status.ok() && shutting_down_.get()) {
-            status = Status.IOError(new Slice("Deleting DB during compaction"),
+            status = Status.ioerror(new Slice("Deleting DB during compaction"),
                     null);
         }
         if (status.ok() && compact.builder != null) {
@@ -827,7 +827,7 @@ public class DBImpl extends DB {
         input = null;
 
         CompactionStats stats = new CompactionStats();
-        stats.micros = env_.NowMicros() - start_micros - imm_micros;
+        stats.micros = env_.nowMicros() - start_micros - imm_micros;
         for (int which = 0; which < 2; which++) {
             for (int i = 0; i < compact.compaction.num_input_files(which); i++) {
                 stats.bytes_read += compact.compaction.input(which, i).file_size;
@@ -854,7 +854,7 @@ public class DBImpl extends DB {
      */
     private Status WriteLevel0Table(MemTable mem, VersionEdit edit, Version base) {
         assert (mutex_.isHeldByCurrentThread());// AssertHeld();
-        long start_micros = env_.NowMicros();
+        long start_micros = env_.nowMicros();
         FileMetaData meta = new FileMetaData();
         meta.setNumber(versions_.NewFileNumber());
         pending_outputs_.add(meta.getNumber());
@@ -890,7 +890,7 @@ public class DBImpl extends DB {
         }
 
         CompactionStats stats = new CompactionStats();
-        stats.micros = env_.NowMicros() - start_micros;
+        stats.micros = env_.nowMicros() - start_micros;
         stats.bytes_written = meta.getFile_size();
         stats_[level].Add(stats);
         return s;
@@ -908,7 +908,7 @@ public class DBImpl extends DB {
         base.Unref();
 
         if (s.ok() && shutting_down_.get()) {
-            s = Status.IOError(new Slice(
+            s = Status.ioerror(new Slice(
                     "Deleting DB during memtable compaction"), null);
         }
 
@@ -1357,9 +1357,9 @@ public class DBImpl extends DB {
 
         try {
             manifest = filename.DescriptorFileName(dbname_, 1);
-            file = env_.NewWritableFile(manifest);
+            file = env_.newWritableFile(manifest);
         } catch (Exception e) {
-            return Status.IOError(new Slice(e.getMessage()), null);
+            return Status.ioerror(new Slice(e.getMessage()), null);
         }
 
         Status s = Status.OK();
@@ -1378,7 +1378,7 @@ public class DBImpl extends DB {
             // Make "CURRENT" file that points to the new manifest file.
             s = filename.SetCurrentFile(env_, dbname_, 1);
         } else {
-            env_.DeleteFile(manifest);
+            env_.deleteFile(manifest);
         }
         return s;
     }
@@ -1388,33 +1388,33 @@ public class DBImpl extends DB {
     // be made to the descriptor are added to *edit.
     public Status Recover(VersionEdit edit) {
         if (!mutex_.isHeldByCurrentThread()) {
-            return Status.NotSupported(new Slice("mutex should be hold"), null);
+            return Status.notSupported(new Slice("mutex should be hold"), null);
         }
 
-        // Ignore error from CreateDir since the creation of the DB is
+        // Ignore error from createDir since the creation of the DB is
         // committed only when the descriptor is created, and this directory
         // may already exist from a previous failed creation attempt.
-        env_.CreateDir(dbname_);
+        env_.createDir(dbname_);
         assert (db_lock_ == null);
-        db_lock_ = env_.LockFile(filename.LockFileName(dbname_));
+        db_lock_ = env_.lockFile(filename.LockFileName(dbname_));
         if (db_lock_ == null) {
-            return Status.IOError(new Slice("LockFile create error"), null);
+            return Status.ioerror(new Slice("lockFile create error"), null);
         }
 
         Status s = null;
-        if (!env_.FileExists(filename.CurrentFileName(dbname_))) {
+        if (!env_.fileExists(filename.CurrentFileName(dbname_))) {
             if (options_.create_if_missing) {
                 s = NewDB();
                 if (!s.ok()) {
                     return s;
                 }
             } else {
-                return Status.InvalidArgument(new Slice(dbname_), new Slice(
+                return Status.invalidArgument(new Slice(dbname_), new Slice(
                         "does not exist (create_if_missing is false)"));
             }
         } else {
             if (options_.error_if_exists) {
-                return Status.InvalidArgument(new Slice(dbname_), new Slice(
+                return Status.invalidArgument(new Slice(dbname_), new Slice(
                         "exists (error_if_exists is true)"));
             }
         }
@@ -1432,7 +1432,7 @@ public class DBImpl extends DB {
             // produced by an older version of leveldb.
             long min_log = versions_.LogNumber();
             long prev_log = versions_.PrevLogNumber();
-            List<String> filenames = env_.GetChildren(dbname_);
+            List<String> filenames = env_.getChildren(dbname_);
 
             long number;
             FileType type = new FileType();
@@ -1486,7 +1486,7 @@ public class DBImpl extends DB {
         Set<Long> live = pending_outputs_;
         versions_.AddLiveFiles(live);
 
-        List<String> filenames = env_.GetChildren(dbname_); // Ignoring errors
+        List<String> filenames = env_.getChildren(dbname_); // Ignoring errors
         // on purpose
         long number;
         FileType type = new FileType();
@@ -1531,10 +1531,10 @@ public class DBImpl extends DB {
                     if (type.value == FileType.kTableFile) {
                         table_cache_.Evict(number);
                     }
-                    LOG.info("Delete type=" + type.value + " # " + number
+                    LOG.info("delete type=" + type.value + " # " + number
                             + "\n delete file: " + dbname_ + "/"
                             + filenames.get(i));
-                    env_.DeleteFile(dbname_ + "/" + filenames.get(i));
+                    env_.deleteFile(dbname_ + "/" + filenames.get(i));
                 }
             }
         }
@@ -1562,7 +1562,7 @@ public class DBImpl extends DB {
         // Logger* info_log;
         // const char* fname;
         // Status* status; // NULL if options_.paranoid_checks==false
-        // virtual void Corruption(size_t bytes, const Status& s) {
+        // virtual void corruption(size_t bytes, const Status& s) {
         // Log(info_log, "%s%s: dropping %d bytes; %s",
         // (this->status == NULL ? "(ignoring error) " : ""),
         // fname, static_cast<int>(bytes), s.ToString().c_str());
@@ -1576,7 +1576,7 @@ public class DBImpl extends DB {
 
         // Open the log file
         String fname = filename.LogFileName(dbname_, log_number);
-        _SequentialFile file = env_.NewSequentialFile(fname);
+        _SequentialFile file = env_.newSequentialFile(fname);
         Status status = new Status();
         // MaybeIgnoreError(status);
         // return status;
@@ -1601,7 +1601,7 @@ public class DBImpl extends DB {
         MemTable mem = null;
         while (reader.ReadRecord(record, scratch) && status.ok()) {
             if (record.size() < 12) {
-                reporter.Corruption(record.size(), Status.Corruption(new Slice(
+                reporter.Corruption(record.size(), Status.corruption(new Slice(
                         "log record too small"), new Slice()));
                 continue;
             }
@@ -1617,7 +1617,7 @@ public class DBImpl extends DB {
                 break;
             }
             long last_seq = WriteBatchInternal.Sequence(batch).value
-                    + WriteBatchInternal.Count(batch) - 1;
+                    + WriteBatchInternal.count(batch) - 1;
             if (last_seq > max_sequence.value) {
                 max_sequence.value = last_seq;
             }
@@ -1661,9 +1661,9 @@ public class DBImpl extends DB {
             LOG.info("No work to be done");
         } else {
             bg_compaction_scheduled_ = true;
-            // env_.Schedule(&DBImpl::BGWork, this);
-            LOG.info("Schedule new background thread");
-            env_.Schedule(new BGWork());
+            // env_.schedule(&DBImpl::BGWork, this);
+            LOG.info("schedule new background thread");
+            env_.schedule(new BGWork());
         }
     }
 

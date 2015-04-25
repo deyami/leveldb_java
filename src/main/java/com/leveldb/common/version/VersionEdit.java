@@ -82,7 +82,7 @@ public class VersionEdit {
         new_files_.add(new Pair<Integer, FileMetaData>(level, f));
     }
 
-    // Delete the specified "file" from the specified "level".
+    // delete the specified "file" from the specified "level".
     public void deleteFile(int level, long file) {
         deleted_files_.add(new Pair<Integer, Long>(level, file));
     }
@@ -161,7 +161,7 @@ public class VersionEdit {
         while (msg == null && !input.STOP()) {
             tag = coding.getVarint32(input);
             if (!input.OK()) {
-                return Status.Corruption(
+                return Status.corruption(
                         new Slice("VersionEdit Decode Error: "), new Slice(
                                 "Hint: Array outof boundary?"));
             }
@@ -259,7 +259,7 @@ public class VersionEdit {
         Status result = Status.OK();
         if (msg != null) {
             result = Status
-                    .Corruption(new Slice("VersionEdit"), new Slice(msg));
+                    .corruption(new Slice("VersionEdit"), new Slice(msg));
         }
         return result;
     }

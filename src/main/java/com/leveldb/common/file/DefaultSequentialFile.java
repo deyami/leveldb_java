@@ -56,7 +56,7 @@ public class DefaultSequentialFile extends _SequentialFile {
             in.skip(n);
         } catch (IOException e) {
             e.printStackTrace();
-            return Status.IOError(new Slice(e.toString()), null);
+            return Status.ioerror(new Slice(e.toString()), null);
         }
         return Status.OK();
     }
