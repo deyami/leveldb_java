@@ -51,13 +51,13 @@ public class TableBuilder {
         if (!ok())
             return;
         if (rep_.num_entries > 0) {
-            assert (rep_.options.comparator.Compare(key, new Slice(
+            assert (rep_.options.comparator.compare(key, new Slice(
                     rep_.last_key)) > 0);
         }
 
         if (rep_.pending_index_entry) {
             assert (rep_.data_block.empty());
-            rep_.last_key = rep_.options.comparator.FindShortestSeparator(rep_.last_key, key);
+            rep_.last_key = rep_.options.comparator.findShortestSeparator(rep_.last_key, key);
             byte[] handle_encoding = rep_.pending_handle.EncodeTo();
             rep_.index_block.Add(new Slice(rep_.last_key), new Slice(
                     handle_encoding));
@@ -118,7 +118,7 @@ public class TableBuilder {
         }
         if (ok()) {
             if (rep_.pending_index_entry) {
-                rep_.last_key = rep_.options.comparator.FindShortSuccessor(rep_.last_key);
+                rep_.last_key = rep_.options.comparator.findShortSuccessor(rep_.last_key);
                 byte[] handle_encoding = rep_.pending_handle.EncodeTo();
                 rep_.index_block.Add(new Slice(rep_.last_key), new Slice(
                         handle_encoding));

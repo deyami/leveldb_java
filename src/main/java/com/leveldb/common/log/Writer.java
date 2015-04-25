@@ -110,7 +110,7 @@ public class Writer {
         crc_ = crc32java.Mask(crc_); // Adjust for storage
         util.putInt(buf, 0, crc_);
 
-        // Write the header and the payload
+        // write the header and the payload
         Status s = dest_.Append(new Slice(buf, logformat.kHeaderSize));
         if (s.ok()) {
             s = dest_.Append(new Slice(ptr, n));

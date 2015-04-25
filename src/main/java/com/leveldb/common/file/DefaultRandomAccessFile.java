@@ -21,7 +21,7 @@ public class DefaultRandomAccessFile extends _RandomAccessFile {
         fileName = iFileName;
         raf1 = new RandomAccessFile(fileName, "rw");
 //		if (fileName.contains(".sst")) {
-//			System.out.println("Random Access Open: " + fileName);
+//			System.out.println("Random Access open: " + fileName);
 //		}
 //		FileChannel fc = raf1.getChannel();
 //		long len = raf1.length();
@@ -49,7 +49,7 @@ public class DefaultRandomAccessFile extends _RandomAccessFile {
 
             raf1.close();
 //			if (fileName.contains("05.sst")) {
-//				System.out.println("Random Access Close: " + fileName);
+//				System.out.println("Random Access close: " + fileName);
 //			}
         } catch (IOException e) {
             e.printStackTrace();

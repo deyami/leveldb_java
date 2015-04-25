@@ -5,7 +5,7 @@ import com.leveldb.common.Comparator;
 import com.leveldb.common.Env;
 import com.leveldb.common.Logger;
 
-//Options to control the behavior of a database (passed to DB::Open)
+//Options to control the behavior of a database (passed to DB::open)
 public class Options {
 
     // -------------------
@@ -107,7 +107,7 @@ public class Options {
 
     // Create an Options object with default values for all fields.
     public Options() {
-        comparator = (Comparator.BytewiseComparator());
+        comparator = (Comparator.bytewiseComparator());
         create_if_missing = false;
         error_if_exists = false;
         paranoid_checks = false;

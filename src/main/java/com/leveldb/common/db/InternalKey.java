@@ -172,14 +172,14 @@ public class InternalKey {
         static byte[] Shorten(byte[] s, byte[] l) {
             byte[] result = (new InternalKeyComparator(
                     BytewiseComparatorImpl.getInstance()))
-                    .FindShortestSeparator(s, new Slice(l));
+                    .findShortestSeparator(s, new Slice(l));
             return (result);
         }
 
         byte[] ShortSuccessor(byte[] s) {
             byte[] result = (new InternalKeyComparator(
                     BytewiseComparatorImpl.getInstance()))
-                    .FindShortSuccessor(s);
+                    .findShortSuccessor(s);
 
             return (result);
         }

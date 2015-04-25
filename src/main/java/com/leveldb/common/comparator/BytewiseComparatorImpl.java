@@ -11,12 +11,12 @@ import com.leveldb.util.util;
 public class BytewiseComparatorImpl extends Comparator {
 
     @Override
-    public int Compare(Slice a, Slice b) {
+    public int compare(Slice a, Slice b) {
         return a.compareTo(b);
     }
 
     @Override
-    public String Name() {
+    public String name() {
         return BytewiseComparatorImpl.class.getName();
     }
 
@@ -28,7 +28,7 @@ public class BytewiseComparatorImpl extends Comparator {
      * @return abce, side effect: start is modified to abceef
      */
     @Override
-    public byte[] FindShortestSeparator(byte[] start, Slice limit) {
+    public byte[] findShortestSeparator(byte[] start, Slice limit) {
 
         // Find length of common prefix
         int min_length = Math.min(start.length, limit.size());
@@ -47,7 +47,7 @@ public class BytewiseComparatorImpl extends Comparator {
                 start[diff_index]++;
                 start = util.head(start, diff_index + 1); // 0...diff_index
                 // start.resize(diff_index + 1);
-                // assert(Compare(*start, limit) < 0);
+                // assert(compare(*start, limit) < 0);
             }
         }
 
@@ -63,7 +63,7 @@ public class BytewiseComparatorImpl extends Comparator {
      * @return \x255\x255b, side effect: key is modified to \x255\x255bbc
      */
     @Override
-    public byte[] FindShortSuccessor(byte[] key) {
+    public byte[] findShortSuccessor(byte[] key) {
 
         // Find first character that can be incremented
         int n = key.length;

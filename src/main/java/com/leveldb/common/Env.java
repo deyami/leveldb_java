@@ -128,7 +128,7 @@ public abstract class Env {
     // Create and return a log file for storing informational messages.
     public abstract Logger newLogger(String fname);
 
-    // Write an entry to the log file with the specified format.
+    // write an entry to the log file with the specified format.
     // public abstract void Logv(_WritableFile log, String format, Object...
     // ap);
 
@@ -152,7 +152,7 @@ public abstract class Env {
         /*
 		 * env.cc WritableFile* file; Status s = env->newWritableFile(fname,
 		 * &file); if (!s.ok()) { return s; } s = file->Append(data); if
-		 * (s.ok()) { s = file->Close(); } delete file; // Will auto-close if we
+		 * (s.ok()) { s = file->close(); } delete file; // Will auto-close if we
 		 * did not close above if (!s.ok()) { env->deleteFile(fname); } return
 		 * s;
 		 */

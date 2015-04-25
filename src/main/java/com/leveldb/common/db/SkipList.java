@@ -427,7 +427,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
                         list);
                 iter.seek(i);
 
-                // Compare against model iterator
+                // compare against model iterator
                 // std::set<Key>::iterator model_iter = keys.lower_bound(i);
                 SortedSet<Integer> model_ = keys.tailSet(i);
                 Iterator<Integer> model_iter = model_.iterator();
@@ -449,7 +449,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
                         list);
                 iter.seekToLast();
 
-                // Compare against model iterator
+                // compare against model iterator
                 Iterator<re_integer> model_iter = keys_reverse.iterator();
                 for (; model_iter.hasNext(); ) {
                     ASSERT_TRUE(iter.valid());

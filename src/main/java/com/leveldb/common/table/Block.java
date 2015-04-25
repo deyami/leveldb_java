@@ -78,7 +78,7 @@ public class Block {
         Status status_ = new Status();
 
         int Compare(Slice a, Slice b) {
-            return comparator_.Compare(a, b);
+            return comparator_.compare(a, b);
         }
 
         // Return the offset in data_ just past the end of the current entry.

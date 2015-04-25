@@ -46,7 +46,7 @@ public class DefaultEnv extends Env {
                 if (queue_.isEmpty()) {
                     try {
                         // wlu, 2012-6-2, so that the thread will be end b
-                        // DB.Close()
+                        // DB.close()
                         bgsignal_.await();
                     } catch (InterruptedException e) {
                         // e.printStackTrace();

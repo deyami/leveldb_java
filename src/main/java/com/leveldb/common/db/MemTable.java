@@ -113,14 +113,14 @@ public class MemTable {
         int compare(byte[] a, byte[] b) {
             Slice as = coding.getLengthPrefixedSlice(a);
             Slice bs = coding.getLengthPrefixedSlice(b);
-            return comparator.Compare(as, bs);
+            return comparator.compare(as, bs);
         }
 
         @Override
         public int compare(Slice k, Slice k2) {
             Slice as = coding.getLengthPrefixedSlice(k.data());
             Slice bs = coding.getLengthPrefixedSlice(k2.data());
-            return comparator.Compare(as, bs);
+            return comparator.compare(as, bs);
         }
     }
 
@@ -215,7 +215,7 @@ public class MemTable {
             Slice entry = iter.key();
             ByteCollection entry_ = new ByteCollection(entry.data(), 0);
             int key_length = coding.getVarint32(entry_); // get the key length
-            if (comparator_.comparator.user_comparator().Compare(
+            if (comparator_.comparator.user_comparator().compare(
                     new Slice(entry_.bytes, entry_.curr_pos, key_length - 8),
                     key.user_key()) == 0) {
                 // Correct user key

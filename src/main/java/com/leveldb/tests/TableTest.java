@@ -65,27 +65,27 @@ public class TableTest extends TestCase {
     }
 
     static class ReverseKeyComparator extends Comparator {
-        public String Name() {
+        public String name() {
             return "leveldb.ReverseBytewiseComparator";
         }
 
-        public int Compare(Slice a, Slice b) {
-            return BytewiseComparatorImpl.getInstance().Compare(a, b);
+        public int compare(Slice a, Slice b) {
+            return BytewiseComparatorImpl.getInstance().compare(a, b);
         }
 
-        public byte[] FindShortestSeparator(byte[] start, Slice limit) {
+        public byte[] findShortestSeparator(byte[] start, Slice limit) {
             byte[] s = Reverse(start);
             byte[] l = Reverse(limit);
 
-            start = BytewiseComparatorImpl.getInstance().FindShortestSeparator(
+            start = BytewiseComparatorImpl.getInstance().findShortestSeparator(
                     s, new Slice(l));
-            // BytewiseComparator()->FindShortestSeparator(&s, l);
+            // bytewiseComparator()->findShortestSeparator(&s, l);
             return Reverse(start);
         }
 
-        public byte[] FindShortSuccessor(byte[] key) {
+        public byte[] findShortSuccessor(byte[] key) {
             byte[] s = Reverse(key);
-            s = BytewiseComparatorImpl.getInstance().FindShortSuccessor(s);
+            s = BytewiseComparatorImpl.getInstance().findShortSuccessor(s);
             return Reverse(s);
         }
     }
@@ -116,12 +116,12 @@ public class TableTest extends TestCase {
         }
 
         boolean less(String a, String b) {
-            return cmp.Compare(new Slice(a), new Slice(b)) < 0;
+            return cmp.compare(new Slice(a), new Slice(b)) < 0;
         }
 
         @Override
         public int compare(byte[] a, byte[] b) {
-            return cmp.Compare(new Slice(a), new Slice(b));
+            return cmp.compare(new Slice(a), new Slice(b));
         }
 
     }
@@ -277,7 +277,7 @@ public class TableTest extends TestCase {
                 builder.Add(new Slice(it), new Slice(data.get(it)));
             }
 
-            // Open the block
+            // open the block
             Slice block_data = builder.Finish();
             block_size_ = block_data.size();
             byte block_data_copy[] = new byte[block_size_];
@@ -335,7 +335,7 @@ public class TableTest extends TestCase {
             ASSERT_TRUE(sink.contents().length == builder.FileSize(),
                     "length not same");
 
-            // Open the table
+            // open the table
             source_ = new StringSource(new Slice(sink.contents()));
             Options table_options = new Options();
             table_options.comparator = options.comparator;
@@ -480,8 +480,8 @@ public class TableTest extends TestCase {
             for (byte[] it : data.keySet()) {
                 WriteBatch batch = new WriteBatch();
                 batch.put(new Slice(it), new Slice(data.get(it)));
-                ASSERT_TRUE(db_.Write(new WriteOptions(), batch).ok(),
-                        "db_ Write batch error");
+                ASSERT_TRUE(db_.write(new WriteOptions(), batch).ok(),
+                        "db_ write batch error");
             }
             return Status.OK();
         }
@@ -489,12 +489,12 @@ public class TableTest extends TestCase {
         int NumBytes() {
             byte[] e = new byte[]{127, 127}; // max value of byte
             Range r = new Range(new Slice(""), new Slice(e));
-            long size = db_.GetApproximateSizes(r);
+            long size = db_.getApproximateSizes(r);
             return (int) size;
         }
 
         Iterator NewIterator() {
-            return db_.NewIterator(new ReadOptions());
+            return db_.newIterator(new ReadOptions());
         }
 
         DB db() {
@@ -506,14 +506,14 @@ public class TableTest extends TestCase {
 
             Options options = new Options();
             options.comparator = comparator_;
-            Status status = DB.DestroyDB(name, options);
+            Status status = DB.destroyDB(name, options);
             ASSERT_TRUE(status.ok(), status.toString());
 
             options.create_if_missing = true;
             options.error_if_exists = true;
             options.write_buffer_size = 1000; // Something small to force
             // merging
-            db_ = DB.Open(options, name);
+            db_ = DB.open(options, name);
             // ASSERT_TRUE(status.ok()) << status.ToString();
         }
 
@@ -604,7 +604,7 @@ public class TableTest extends TestCase {
     void Close() {
         DB d = constructor_.db();
         if (d != null) {
-            d.Close();
+            d.close();
         }
     }
 
@@ -629,7 +629,7 @@ public class TableTest extends TestCase {
         DB d = constructor_.db();
         if (b) {
             if (d != null) {
-                d.Close();
+                d.close();
             }
         }
     }
@@ -1051,14 +1051,14 @@ public class TableTest extends TestCase {
         for (int level = 0; level < config.kNumLevels; level++) {
             StringBuffer value = new StringBuffer();
             String name = "leveldb.num-files-at-level" + level;
-            ASSERT_TRUE(db().GetProperty(new Slice(name), value), "fail");
+            ASSERT_TRUE(db().getProperty(new Slice(name), value), "fail");
             files += Integer.parseInt(value.toString());
         }
         ASSERT_TRUE(true, "#Files = " + files);
         System.out.println("#Files = " + files);
 
         StringBuffer value = new StringBuffer();
-        db().GetProperty(new Slice("leveldb.stats"), value);
+        db().getProperty(new Slice("leveldb.stats"), value);
         System.out.println(value.toString());
 
         Close();

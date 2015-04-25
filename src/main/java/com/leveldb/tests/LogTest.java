@@ -158,7 +158,7 @@ public class LogTest {
     }
 
     void Write(String msg) {
-        ASSERT_TRUE(!reading_, "Write() after starting to read");
+        ASSERT_TRUE(!reading_, "write() after starting to read");
         writer_.AddRecord(new Slice(msg));
     }
 
@@ -477,7 +477,7 @@ public class LogTest {
         // where the middle two fragments disappear. We do not want
         // first(R1),last(R2) to get joined and returned as a valid record.
 
-        // Write records that span two blocks
+        // write records that span two blocks
         Write(BigString("foo", logformat.kBlockSize));
         Write(BigString("bar", logformat.kBlockSize));
         Write("correct");

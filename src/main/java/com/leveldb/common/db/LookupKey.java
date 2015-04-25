@@ -6,7 +6,7 @@ import com.leveldb.util.ValueType;
 import com.leveldb.util.coding;
 import com.leveldb.util.util;
 
-// A helper class useful for DBImpl::Get()
+// A helper class useful for DBImpl::get()
 public class LookupKey {
     // kValueTypeForSeek defines the ValueType that should be passed when
     // constructing a ParsedInternalKey object for seeking to a particular

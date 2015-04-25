@@ -93,7 +93,7 @@ public class DBTest extends TestCase {
         System.out.println("DBTest is constructed");
         env_ = (new SpecialEnv(Env.Default()));
         dbname_ = TableTest.TmpDir() + "/db_test";
-        DB.DestroyDB(dbname_, new Options());
+        DB.destroyDB(dbname_, new Options());
         db_ = null;
         Reopen(null);
         // constructed = true;
@@ -101,11 +101,11 @@ public class DBTest extends TestCase {
     }
 
     boolean Close() {
-        System.out.println("Close");
+        System.out.println("close");
         if (db_ != null) {
-            db_.Close();
+            db_.close();
         }
-        DB.DestroyDB(dbname_, new Options());
+        DB.destroyDB(dbname_, new Options());
         env_ = null;
         return true;
     }
@@ -124,16 +124,16 @@ public class DBTest extends TestCase {
 
     void DestroyAndReopen(Options options) {
         if (db_ != null) {
-            db_.Close();
+            db_.close();
         }
         db_ = null;
-        DB.DestroyDB(dbname_, new Options());
+        DB.destroyDB(dbname_, new Options());
         assertNotNull(TryReopen(options));
     }
 
     DB TryReopen(Options options) {
         if (db_ != null) {
-            db_.Close();
+            db_.close();
         }
         db_ = null;
         Options opts = new Options();
@@ -143,13 +143,13 @@ public class DBTest extends TestCase {
             opts.create_if_missing = true;
         }
         last_options_ = opts;
-        db_ = DB.Open(opts, dbname_);
+        db_ = DB.open(opts, dbname_);
         return db_;
     }
 
     DB TryReopen(Options options, Status s_) {
         if (db_ != null) {
-            db_.Close();
+            db_.close();
         }
         db_ = null;
         Options opts = new Options();
@@ -159,12 +159,12 @@ public class DBTest extends TestCase {
             opts.create_if_missing = true;
         }
         last_options_ = opts;
-        db_ = DB.Open(opts, dbname_, s_);
+        db_ = DB.open(opts, dbname_, s_);
         return db_;
     }
 
     Status Put(Slice k, Slice v) {
-        return db_.Put(new WriteOptions(), k, v);
+        return db_.put(new WriteOptions(), k, v);
     }
 
     Status Put(String k, String v) {
@@ -172,7 +172,7 @@ public class DBTest extends TestCase {
     }
 
     Status Delete(Slice k) {
-        return db_.Delete(new WriteOptions(), k);
+        return db_.delete(new WriteOptions(), k);
     }
 
     Status Delete(String k) {
@@ -183,7 +183,7 @@ public class DBTest extends TestCase {
         ReadOptions options = new ReadOptions();
         options.snapshot = snapshot;
         Status s = new Status();
-        Slice result = db_.Get(options, k, s);
+        Slice result = db_.get(options, k, s);
         if (s.isNotFound()) {
             result = new Slice("NOT_FOUND");
         } else if (!s.ok()) {
@@ -219,7 +219,7 @@ public class DBTest extends TestCase {
     String Contents() {
         List<String> forward = new ArrayList<String>();
         String result = "";
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
         for (iter.seekToFirst(); iter.valid(); iter.next()) {
             String s = IterStatus(iter);
             result += ('(');
@@ -259,7 +259,7 @@ public class DBTest extends TestCase {
                 if (ikey == null) {
                     result += "CORRUPTED";
                 } else {
-                    if (last_options_.comparator.Compare(ikey.user_key,
+                    if (last_options_.comparator.compare(ikey.user_key,
                             user_key) != 0) {
                         break;
                     }
@@ -293,7 +293,7 @@ public class DBTest extends TestCase {
 
     int NumTableFilesAtLevel(int level) {
         StringBuffer property = new StringBuffer();
-        assertTrue(db_.GetProperty(new Slice("leveldb.num-files-at-level"
+        assertTrue(db_.getProperty(new Slice("leveldb.num-files-at-level"
                 + level), property));
         return Integer.parseInt(property.toString());
     }
@@ -324,7 +324,7 @@ public class DBTest extends TestCase {
 
     long Size(Slice start, Slice limit) {
         Range r = new Range(start, limit);
-        long size = db_.GetApproximateSizes(r);
+        long size = db_.getApproximateSizes(r);
         return size;
     }
 
@@ -333,7 +333,7 @@ public class DBTest extends TestCase {
     }
 
     void Compact(Slice start, Slice limit) {
-        db_.CompactRange(start, limit);
+        db_.compactRange(start, limit);
     }
 
     void Compact(String start, String limit) {
@@ -375,7 +375,7 @@ public class DBTest extends TestCase {
 
     String DumpSSTableList() {
         StringBuffer property = new StringBuffer();
-        db_.GetProperty(new Slice("leveldb.sstables"), property);
+        db_.getProperty(new Slice("leveldb.sstables"), property);
         return property.toString();
     }
 
@@ -402,12 +402,12 @@ public class DBTest extends TestCase {
 
     public void testPutDeleteGet() {
         ASSERT_OK(db_
-                .Put(new WriteOptions(), new Slice("foo"), new Slice("v1")));
+                .put(new WriteOptions(), new Slice("foo"), new Slice("v1")));
         assertTrue("v1".compareTo(Get("foo").toString()) == 0);
         ASSERT_OK(db_
-                .Put(new WriteOptions(), new Slice("foo"), new Slice("v2")));
+                .put(new WriteOptions(), new Slice("foo"), new Slice("v2")));
         assertTrue("v2".compareTo(Get("foo").toString()) == 0);
-        ASSERT_OK(db_.Delete(new WriteOptions(), new Slice("foo")));
+        ASSERT_OK(db_.delete(new WriteOptions(), new Slice("foo")));
         String g = Get(new Slice("foo")).toString();
         assertTrue("NOT_FOUND".compareTo(g) == 0);
         assertTrue(Close());
@@ -451,14 +451,14 @@ public class DBTest extends TestCase {
             String key = (i == 0) ? new String("foo") : TableTest.string(200,
                     'x');
             ASSERT_OK(Put(key, "v1"));
-            Snapshot s1 = db_.GetSnapshot();
+            Snapshot s1 = db_.getSnapshot();
             ASSERT_OK(Put(key, "v2"));
             ASSERT_EQ("v2", Get(key));
             ASSERT_EQ("v1", Get(key, s1));
             dbfull().TEST_CompactMemTable();
             ASSERT_EQ("v2", Get(key));
             ASSERT_EQ("v1", Get(key, s1));
-            db_.ReleaseSnapshot(s1);
+            db_.releaseSnapshot(s1);
         }
     }
 
@@ -503,7 +503,7 @@ public class DBTest extends TestCase {
         // * sstable A in level 0
         // * nothing in level 1
         // * sstable B in level 2
-        // Then do enough Get() calls to arrange for an automatic compaction
+        // Then do enough get() calls to arrange for an automatic compaction
         // of sstable A. A bug would cause the compaction to be marked as
         // occuring at level 1 (instead of the correct level 0).
 
@@ -519,7 +519,7 @@ public class DBTest extends TestCase {
         }
         System.out.println("Have filled levels 0 and 2");
         StringBuffer sb = new StringBuffer();
-        dbfull().GetProperty(new Slice("leveldb.stats"), sb);
+        dbfull().getProperty(new Slice("leveldb.stats"), sb);
         System.out.println(sb.toString());
 
         // Step 2: clear level 1 if necessary.
@@ -533,7 +533,7 @@ public class DBTest extends TestCase {
         int read_count = 0;
         while (NumTableFilesAtLevel(0) > 0) {
             sb = new StringBuffer();
-            dbfull().GetProperty(new Slice("leveldb.stats"), sb);
+            dbfull().getProperty(new Slice("leveldb.stats"), sb);
             System.out.println(sb.toString());
             assertTrue(/* "did not trigger level 0 compaction", */
                     read_count <= 10000);
@@ -543,7 +543,7 @@ public class DBTest extends TestCase {
     }
 
     public void testIterEmpty() {
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
 
         iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
@@ -559,7 +559,7 @@ public class DBTest extends TestCase {
 
     public void testIterSingle() {
         ASSERT_OK(Put("a", "va"));
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
 
         iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
@@ -599,7 +599,7 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("a", "va"));
         ASSERT_OK(Put("b", "vb"));
         ASSERT_OK(Put("c", "vc"));
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
 
         iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
@@ -683,7 +683,7 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("d", TableTest.string(100000, 'd')));
         ASSERT_OK(Put("e", TableTest.string(100000, 'e')));
 
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
 
         iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
@@ -719,7 +719,7 @@ public class DBTest extends TestCase {
         ASSERT_OK(Delete(new Slice("b")));
         ASSERT_EQ("NOT_FOUND", Get("b"));
 
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        Iterator iter = db_.newIterator(new ReadOptions());
         iter.seek(new Slice("c"));
         ASSERT_EQ(IterStatus(iter), "c->vc");
         iter.prev();
@@ -849,7 +849,7 @@ public class DBTest extends TestCase {
 
         Random rnd = new Random(301);
 
-        // Write 8MB (80 values, each 100K)
+        // write 8MB (80 values, each 100K)
         assertTrue(NumTableFilesAtLevel(0) == 0);
         List<String> values = new ArrayList<String>();
         for (int i = 0; i < 80; i++) {
@@ -908,7 +908,7 @@ public class DBTest extends TestCase {
         // shot.
         String value = TableTest.string(1000, 'x');
         Put("A", "va");
-        // Write approximately 100MB of "B" values
+        // write approximately 100MB of "B" values
         for (int i = 0; i < 100000; i++) {
             String key = (String.format("B%010d", i));
             Put(key, value);
@@ -951,7 +951,7 @@ public class DBTest extends TestCase {
         Reopen(options);
         assertTrue(Between(Size("", "xyz"), 0, 0));
 
-        // Write 8MB (80 values, each 100K)
+        // write 8MB (80 values, each 100K)
         assertEquals(NumTableFilesAtLevel(0), 0);
         int N = 80;
         Random rnd = new Random(301);
@@ -959,7 +959,7 @@ public class DBTest extends TestCase {
             ASSERT_OK(Put(Key(i), util.RandomString(rnd, 100000)));
         }
 
-        // 0 because GetApproximateSizes() does not account for memtable space
+        // 0 because getApproximateSizes() does not account for memtable space
         assertTrue(Between(Size("", Key(50)), 0, 0));
 
         // Check sizes across recovery by reopening a few times
@@ -1033,10 +1033,10 @@ public class DBTest extends TestCase {
     public void testIteratorPinsRef() {
         Put("foo", "hello");
 
-        // Get iterator that will yield the current contents of the DB.
-        Iterator iter = db_.NewIterator(new ReadOptions());
+        // get iterator that will yield the current contents of the DB.
+        Iterator iter = db_.newIterator(new ReadOptions());
 
-        // Write to force compactions
+        // write to force compactions
         Put("foo", "newvalue1");
         for (int i = 0; i < 100; i++) {
             ASSERT_OK(Put(Key(i), Key(i) + TableTest.string(100000, 'v'))); // 100K
@@ -1054,11 +1054,11 @@ public class DBTest extends TestCase {
 
     public void testSnapshot() {
         Put("foo", "v1");
-        Snapshot s1 = db_.GetSnapshot();
+        Snapshot s1 = db_.getSnapshot();
         Put("foo", "v2");
-        Snapshot s2 = db_.GetSnapshot();
+        Snapshot s2 = db_.getSnapshot();
         Put("foo", "v3");
-        Snapshot s3 = db_.GetSnapshot();
+        Snapshot s3 = db_.getSnapshot();
 
         Put("foo", "v4");
         ASSERT_EQ("v1", Get("foo", s1));
@@ -1066,16 +1066,16 @@ public class DBTest extends TestCase {
         ASSERT_EQ("v3", Get("foo", s3));
         ASSERT_EQ("v4", Get("foo"));
 
-        db_.ReleaseSnapshot(s3);
+        db_.releaseSnapshot(s3);
         ASSERT_EQ("v1", Get("foo", s1));
         ASSERT_EQ("v2", Get("foo", s2));
         ASSERT_EQ("v4", Get("foo"));
 
-        db_.ReleaseSnapshot(s1);
+        db_.releaseSnapshot(s1);
         ASSERT_EQ("v2", Get("foo", s2));
         ASSERT_EQ("v4", Get("foo"));
 
-        db_.ReleaseSnapshot(s2);
+        db_.releaseSnapshot(s2);
         ASSERT_EQ("v4", Get("foo"));
     }
 
@@ -1086,7 +1086,7 @@ public class DBTest extends TestCase {
         String big = RandomString(rnd, 50000);
         Put("foo", big);
         Put("pastfoo", "v");
-        Snapshot snapshot = db_.GetSnapshot();
+        Snapshot snapshot = db_.getSnapshot();
         Put("foo", "tiny");
         Put("pastfoo2", "v2"); // Advance sequence number one more
 
@@ -1095,7 +1095,7 @@ public class DBTest extends TestCase {
 
         ASSERT_EQ(big, Get("foo", snapshot));
         assertTrue(Between(Size("", "pastfoo"), 50000, 60000));
-        db_.ReleaseSnapshot(snapshot);
+        db_.releaseSnapshot(snapshot);
         ASSERT_EQ(AllEntriesFor(new Slice("foo")), "[ tiny, " + big + " ]");
         Slice x = new Slice("x");
         dbfull().TEST_CompactRange(0, null, x);
@@ -1260,21 +1260,21 @@ public class DBTest extends TestCase {
 
     public void testComparatorCheck() {
         class NewComparator extends Comparator {
-            public String Name() {
+            public String name() {
                 return "leveldb.NewComparator";
             }
 
-            public int Compare(Slice a, Slice b) {
-                return BytewiseComparatorImpl.getInstance().Compare(a, b);
+            public int compare(Slice a, Slice b) {
+                return BytewiseComparatorImpl.getInstance().compare(a, b);
             }
 
-            public byte[] FindShortestSeparator(byte[] s, Slice l) {
+            public byte[] findShortestSeparator(byte[] s, Slice l) {
                 return BytewiseComparatorImpl.getInstance()
-                        .FindShortestSeparator(s, l);
+                        .findShortestSeparator(s, l);
             }
 
-            public byte[] FindShortSuccessor(byte[] key) {
-                return BytewiseComparatorImpl.getInstance().FindShortSuccessor(
+            public byte[] findShortSuccessor(byte[] key) {
+                return BytewiseComparatorImpl.getInstance().findShortSuccessor(
                         key);
             }
         }
@@ -1291,21 +1291,21 @@ public class DBTest extends TestCase {
 
     public void testCustomComparator() {
         class NumberComparator extends Comparator {
-            public String Name() {
+            public String name() {
                 return "test.NumberComparator";
             }
 
-            public int Compare(Slice a, Slice b) {
+            public int compare(Slice a, Slice b) {
                 return ToNumber(a) - ToNumber(b);
             }
 
-            public byte[] FindShortestSeparator(byte[] s, Slice l) {
+            public byte[] findShortestSeparator(byte[] s, Slice l) {
                 ToNumber(new Slice(s)); // Check format
                 ToNumber(l); // Check format
                 return s;
             }
 
-            public byte[] FindShortSuccessor(byte[] key) {
+            public byte[] findShortSuccessor(byte[] key) {
                 ToNumber(key); // Check format
                 return key;
             }
@@ -1386,47 +1386,47 @@ public class DBTest extends TestCase {
         // Compact all
         MakeTables(1, "a", "z");
         ASSERT_EQ("0,1,2,0,0,0,0", FilesPerLevel());
-        db_.CompactRange(null, null);
+        db_.compactRange(null, null);
         ASSERT_EQ("0,0,1,0,0,0,0", FilesPerLevel());
     }
 
     public void testDBOpen_Options() {
         String dbname = TableTest.TmpDir() + "/db_options_test";
-        DB.DestroyDB(dbname, new Options());
+        DB.destroyDB(dbname, new Options());
 
         // Does not exist, and create_if_missing == false: error
         DB db = null;
         Options opts = new Options();
         opts.create_if_missing = false;
         Status s = new Status();
-        db = DB.Open(opts, dbname, s);
+        db = DB.open(opts, dbname, s);
         assertTrue(s.toString().contains("does not exist"));
         assertTrue(db == null);
 
         // Does not exist, and create_if_missing == true: OK
         opts.create_if_missing = true;
-        db = DB.Open(opts, dbname, s);
+        db = DB.open(opts, dbname, s);
         ASSERT_OK(s);
         assertTrue(db != null);
 
-        db.Close();
+        db.close();
         db = null;
 
         // Does exist, and error_if_exists == true: error
         opts.create_if_missing = false;
         opts.error_if_exists = true;
-        db = DB.Open(opts, dbname, s);
+        db = DB.open(opts, dbname, s);
         assertTrue(s.toString().contains("exists"));
         assertTrue(db == null);
 
         // Does exist, and error_if_exists == false: OK
         opts.create_if_missing = true;
         opts.error_if_exists = false;
-        db = DB.Open(opts, dbname, s);
+        db = DB.open(opts, dbname, s);
         ASSERT_OK(s);
         assertTrue(db != null);
 
-        db.Close();
+        db.close();
         db = null;
     }
 

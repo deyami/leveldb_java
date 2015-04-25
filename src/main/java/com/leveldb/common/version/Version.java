@@ -209,7 +209,7 @@ public class Version {
             s[0] = Status.corruption(new Slice("corrupted key for "), user_key);
             return true; // stop with error
         }
-        if (cmp.Compare(parsed_key.user_key, user_key) != 0) {
+        if (cmp.compare(parsed_key.user_key, user_key) != 0) {
             return false; // not stop
         }
         switch (parsed_key.type.value) {
@@ -264,7 +264,7 @@ public class Version {
         while (left < right) {
             int mid = (left + right) / 2;
             FileMetaData f = files.get(mid);
-            if (icmp.Compare(f.getLargest().Encode(), ikey) < 0) {
+            if (icmp.compare(f.getLargest().Encode(), ikey) < 0) {
                 // Key at "mid.largest" is < "target". Therefore all
                 // files at or before "mid" are uninteresting.
                 left = mid + 1;
@@ -278,7 +278,7 @@ public class Version {
     }
 
     /*
-     * Get the value of a given lookup key from all files on each level return
+     * get the value of a given lookup key from all files on each level return
      * the value as a byte array s must be an array with length 1
      */
     public byte[] Get(ReadOptions options, LookupKey k, GetStats stats,
@@ -305,7 +305,7 @@ public class Version {
             if (num_files == 0)
                 continue;
 
-            // Get the list of files to search in this level
+            // get the list of files to search in this level
             List<FileMetaData> files = files_.get(level);
             FileMetaData[] files2 = null;
             if (level == 0) {
@@ -315,8 +315,8 @@ public class Version {
                 // tmp.reserve(num_files);
                 for (int i = 0; i < num_files; i++) {
                     FileMetaData f = files.get(i);
-                    if (ucmp.Compare(user_key, f.getSmallest().user_key()) >= 0
-                            && ucmp.Compare(user_key, f.getLargest().user_key()) <= 0) {
+                    if (ucmp.compare(user_key, f.getSmallest().user_key()) >= 0
+                            && ucmp.compare(user_key, f.getLargest().user_key()) <= 0) {
                         tmp.add(f);
                     }
                 }
@@ -335,7 +335,7 @@ public class Version {
                     num_files = 0;
                 } else {
                     tmp2 = files.get(index);
-                    if (ucmp.Compare(user_key, tmp2.getSmallest().user_key()) < 0) {
+                    if (ucmp.compare(user_key, tmp2.getSmallest().user_key()) < 0) {
                         // All of "tmp2" is past any data for user_key
                         files = null;
                         num_files = 0;
@@ -444,10 +444,10 @@ public class Version {
             FileMetaData f = files_.get(level).get(i++);
             Slice file_start = f.getSmallest().user_key();
             Slice file_limit = f.getLargest().user_key();
-            if (begin != null && user_cmp.Compare(file_limit, user_begin) < 0) {
+            if (begin != null && user_cmp.compare(file_limit, user_begin) < 0) {
                 // "f" is completely before specified range; skip it
             } else if (end != null
-                    && user_cmp.Compare(file_start, user_end) > 0) {
+                    && user_cmp.compare(file_start, user_end) > 0) {
                 // "f" is completely after specified range; skip it
             } else {
                 // "f" is partialy/completely inner the range
@@ -457,12 +457,12 @@ public class Version {
                     // newly
                     // added file has expanded the range. If so, restart search.
                     if (begin != null
-                            && user_cmp.Compare(file_start, user_begin) < 0) {
+                            && user_cmp.compare(file_start, user_begin) < 0) {
                         user_begin = file_start;
                         inputs.clear();
                         i = 0;
                     } else if (end != null
-                            && user_cmp.Compare(file_limit, user_end) > 0) {
+                            && user_cmp.compare(file_limit, user_end) > 0) {
                         user_end = file_limit;
                         inputs.clear();
                         i = 0;
@@ -476,7 +476,7 @@ public class Version {
     public static boolean AfterFile(Comparator ucmp, Slice user_key,
                                     FileMetaData f) {
         // NULL user_key occurs before all keys and is therefore never after *f
-        return (user_key != null && ucmp.Compare(user_key, f.getLargest()
+        return (user_key != null && ucmp.compare(user_key, f.getLargest()
                 .user_key()) > 0);
     }
 
@@ -484,7 +484,7 @@ public class Version {
     public static boolean BeforeFile(Comparator ucmp, Slice user_key,
                                      FileMetaData f) {
         // NULL user_key occurs after all keys and is therefore never before *f
-        return (user_key != null && ucmp.Compare(user_key, f.getSmallest()
+        return (user_key != null && ucmp.compare(user_key, f.getSmallest()
                 .user_key()) < 0);
     }
 

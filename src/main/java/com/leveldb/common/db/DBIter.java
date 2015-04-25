@@ -136,7 +136,7 @@ class DBIter extends Iterator {
                         break;
                     case ValueType.kTypeValue:
                         if (skipping
-                                && user_comparator_.Compare(
+                                && user_comparator_.compare(
                                 ikey.user_key,
                                 new Slice(skip.getRawRef(), 0, skip
                                         .getSize())) <= 0) {
@@ -171,7 +171,7 @@ class DBIter extends Iterator {
                     ClearSavedValue();
                     return;
                 }
-                if (user_comparator_.Compare(InternalKey.ExtractUserKey(iter_
+                if (user_comparator_.compare(InternalKey.ExtractUserKey(iter_
                         .key()), new Slice(saved_key_.getRawRef(), 0,
                         saved_key_.getSize())) < 0) {
                     break;
@@ -192,7 +192,7 @@ class DBIter extends Iterator {
                 ParsedInternalKey ikey = ParseKey();
                 if (ikey.sequence.value <= sequence_.value) {
                     if ((value_type != ValueType.TypeDeletion)
-                            && user_comparator_.Compare(ikey.user_key,
+                            && user_comparator_.compare(ikey.user_key,
                             new Slice(saved_key_.getRawRef(), 0,
                                     saved_key_.getSize())) < 0) {
                         // We encountered a non-deleted value in entries for

@@ -7,7 +7,7 @@ import com.leveldb.common.comparator.InternalKeyComparator;
 import com.leveldb.common.file.FileType;
 import com.leveldb.common.file._SequentialFile;
 import com.leveldb.common.file._WritableFile;
-import com.leveldb.common.file.filename;
+import com.leveldb.common.file.FileName;
 import com.leveldb.common.log.Reader;
 import com.leveldb.common.options.Options;
 import com.leveldb.common.options.ReadOptions;
@@ -186,12 +186,12 @@ public class DBImpl extends DB {
         ClipToRange(result.write_buffer_size, 64 << 10, 1 << 30);
         ClipToRange(result.block_size, 1 << 10, 4 << 20);
         if (result.info_log == null) {
-            // Open a log file in the same directory as the db
+            // open a log file in the same directory as the db
             src.env.createDir(dbname); // In case it does not exist
-            src.env.renameFile(filename.InfoLogFileName(dbname),
-                    filename.OldInfoLogFileName(dbname));
-            result.info_log = src.env.newLogger(filename
-                    .InfoLogFileName(dbname));
+            src.env.renameFile(FileName.infoLogFileName(dbname),
+                    FileName.oldInfoLogFileName(dbname));
+            result.info_log = src.env.newLogger(FileName
+                    .infoLogFileName(dbname));
             // if (!s.ok()) {
             // // No place suitable for logging
             // result.info_log = NULL;
@@ -240,17 +240,17 @@ public class DBImpl extends DB {
     // public void ReleaseDbImpl
 
     @Override
-    public Status Put(WriteOptions options, Slice key, Slice value) {
-        return super.Put(options, key, value);
+    public Status put(WriteOptions options, Slice key, Slice value) {
+        return super.put(options, key, value);
     }
 
     @Override
-    public Status Delete(WriteOptions options, Slice key) {
-        return super.Delete(options, key);
+    public Status delete(WriteOptions options, Slice key) {
+        return super.delete(options, key);
     }
 
     @Override
-    public Status Write(WriteOptions options, WriteBatch my_batch) {
+    public Status write(WriteOptions options, WriteBatch my_batch) {
         Status status = Status.OK();
         Writer w = new Writer(mutex_);
         w.batch = my_batch;
@@ -368,8 +368,8 @@ public class DBImpl extends DB {
                 // old
                 assert (versions_.PrevLogNumber() == 0);
                 long new_log_number = versions_.NewFileNumber();
-                _WritableFile lfile = env_.newWritableFile(filename
-                        .LogFileName(dbname_, new_log_number));
+                _WritableFile lfile = env_.newWritableFile(FileName
+                        .logFileName(dbname_, new_log_number));
                 if (!s.ok()) {
                     break;
                 }
@@ -444,7 +444,7 @@ public class DBImpl extends DB {
     }
 
     @Override
-    public Slice Get(ReadOptions options, Slice key, Status st) {
+    public Slice get(ReadOptions options, Slice key, Status st) {
         Slice result = new Slice();
         Status s = null;
         mutex_.lock();
@@ -531,13 +531,13 @@ public class DBImpl extends DB {
         }
 
         // Make the output file
-        String fname = filename.TableFileName(dbname_, file_number);
+        String fname = FileName.tableFileName(dbname_, file_number);
         compact.outfile = env_.newWritableFile(fname);
         compact.builder = new TableBuilder(options_, compact.outfile);
         return Status.OK();
     }
 
-    public void Close() {
+    public void close() {
         // Wait for background work to finish
         mutex_.lock();
         // shutting_down_.releaseStore(this); // Any non-NULL value is ok
@@ -747,7 +747,7 @@ public class DBImpl extends DB {
                 last_sequence_for_key = SequenceNumber.kMaxSequenceNumber;
             } else {
                 if (!has_current_user_key
-                        || user_comparator().Compare(ikey.user_key,
+                        || user_comparator().compare(ikey.user_key,
                         new Slice(current_user_key)) != 0) {
                     // First occurrence of this user key
                     // current_user_key.assign(ikey.user_key.data(),
@@ -788,7 +788,7 @@ public class DBImpl extends DB {
             // #endif
 
             if (!drop) {
-                // Open output file if necessary
+                // open output file if necessary
                 if (compact.builder == null) {
                     status = OpenCompactionOutputFile(compact);
                     if (!status.ok()) {
@@ -801,7 +801,7 @@ public class DBImpl extends DB {
                 compact.current_output().largest.DecodeFrom(key);
                 compact.builder.Add(key, input.value());
 
-                // Close output file if it is big enough
+                // close output file if it is big enough
                 if (compact.builder.FileSize() >= compact.compaction
                         .MaxOutputFileSize()) {
                     status = FinishCompactionOutputFile(compact, input);
@@ -1033,7 +1033,7 @@ public class DBImpl extends DB {
     }
 
     @Override
-    public Iterator NewIterator(ReadOptions options) {
+    public Iterator newIterator(ReadOptions options) {
         SequenceNumber latest_snapshot = new SequenceNumber(0);
         Iterator internal_iter = NewInternalIterator(options, latest_snapshot);
         return DBIter
@@ -1047,7 +1047,7 @@ public class DBImpl extends DB {
     }
 
     @Override
-    public Snapshot GetSnapshot() {
+    public Snapshot getSnapshot() {
         mutex_.lock();
         try {
             return snapshots_.New(versions_.LastSequence());
@@ -1057,14 +1057,14 @@ public class DBImpl extends DB {
     }
 
     @Override
-    public void ReleaseSnapshot(Snapshot snapshot) {
+    public void releaseSnapshot(Snapshot snapshot) {
         mutex_.lock();
         snapshots_.Delete((SnapshotImpl) (snapshot));
 
     }
 
     @Override
-    public boolean GetProperty(Slice property, StringBuffer value) {
+    public boolean getProperty(Slice property, StringBuffer value) {
 
         mutex_.tryLock();
         Slice in = property;
@@ -1088,7 +1088,7 @@ public class DBImpl extends DB {
             }
         } else if (in.compareTo(new Slice("stats")) == 0) {
             String buf = "                               Compactions\n"
-                    + "Level  Files Size(MB) Time(sec) Read(MB) Write(MB)\n"
+                    + "Level  Files Size(MB) Time(sec) Read(MB) write(MB)\n"
                     + "--------------------------------------------------\n";
             value.append(buf);
             for (int level = 0; level < config.kNumLevels; level++) {
@@ -1115,7 +1115,7 @@ public class DBImpl extends DB {
     }
 
     @Override
-    public long[] GetApproximateSizes(Range range[], int n) {
+    public long[] getApproximateSizes(Range range[], int n) {
         Version v = null;
         try {
             mutex_.lock();
@@ -1152,7 +1152,7 @@ public class DBImpl extends DB {
     }
 
     // wlu, 2012-5-11
-    public void CompactRange(Slice begin, Slice end) {
+    public void compactRange(Slice begin, Slice end) {
         int max_level_with_files = 1;
         mutex_.lock();
         try {
@@ -1221,7 +1221,7 @@ public class DBImpl extends DB {
     // Force current memtable contents to be compacted.
     public Status TEST_CompactMemTable() {
         // NULL batch means just wait for earlier writes to be done
-        Status s = Write(new WriteOptions(), null);
+        Status s = write(new WriteOptions(), null);
         if (s.ok()) {
             // Wait until the compaction completes
             mutex_.lock();
@@ -1286,7 +1286,7 @@ public class DBImpl extends DB {
             i++;
         }
         // if (false) {
-        // Iterator i1 = mem_.NewIterator();
+        // Iterator i1 = mem_.newIterator();
         // i1.seekToFirst();
         // while (i1.valid()) {
         // System.out.println("In Mem\t" + i1.key() + " -> " + i1.value());
@@ -1295,7 +1295,7 @@ public class DBImpl extends DB {
         // }
         //
         // if (imm_ != null) {
-        // Iterator i2 = imm_.NewIterator();
+        // Iterator i2 = imm_.newIterator();
         // i2.seekToFirst();
         // while (i2.valid()) {
         // System.out.println("In imm\t" + i2.key() + " -> "
@@ -1347,7 +1347,7 @@ public class DBImpl extends DB {
 
     private Status NewDB() {
         VersionEdit new_db = new VersionEdit();
-        new_db.setComparatorName(new Slice(user_comparator().Name()));
+        new_db.setComparatorName(new Slice(user_comparator().name()));
         new_db.setLogNumber(0);
         new_db.setNextFile(2);
         new_db.setLastSequence(new SequenceNumber(0));
@@ -1356,7 +1356,7 @@ public class DBImpl extends DB {
         String manifest = null;
 
         try {
-            manifest = filename.DescriptorFileName(dbname_, 1);
+            manifest = FileName.descriptorFileName(dbname_, 1);
             file = env_.newWritableFile(manifest);
         } catch (Exception e) {
             return Status.ioerror(new Slice(e.getMessage()), null);
@@ -1376,7 +1376,7 @@ public class DBImpl extends DB {
         file = null;
         if (s.ok()) {
             // Make "CURRENT" file that points to the new manifest file.
-            s = filename.SetCurrentFile(env_, dbname_, 1);
+            s = FileName.setCurrentFile(env_, dbname_, 1);
         } else {
             env_.deleteFile(manifest);
         }
@@ -1396,13 +1396,13 @@ public class DBImpl extends DB {
         // may already exist from a previous failed creation attempt.
         env_.createDir(dbname_);
         assert (db_lock_ == null);
-        db_lock_ = env_.lockFile(filename.LockFileName(dbname_));
+        db_lock_ = env_.lockFile(FileName.lockFileName(dbname_));
         if (db_lock_ == null) {
             return Status.ioerror(new Slice("lockFile create error"), null);
         }
 
         Status s = null;
-        if (!env_.fileExists(filename.CurrentFileName(dbname_))) {
+        if (!env_.fileExists(FileName.currentFileName(dbname_))) {
             if (options_.create_if_missing) {
                 s = NewDB();
                 if (!s.ok()) {
@@ -1439,7 +1439,7 @@ public class DBImpl extends DB {
             List<Long> logs = new ArrayList<Long>();
             for (int i = 0; i < filenames.size(); i++) {
                 try {
-                    number = filename.ParseFileName(filenames.get(i), type);
+                    number = FileName.parseFileName(filenames.get(i), type);
                 } catch (Exception e) {
                     number = -1;
                     e.printStackTrace();
@@ -1492,7 +1492,7 @@ public class DBImpl extends DB {
         FileType type = new FileType();
         for (int i = 0; i < filenames.size(); i++) {
             try {
-                number = filename.ParseFileName(filenames.get(i), type);
+                number = FileName.parseFileName(filenames.get(i), type);
             } catch (Exception e) {
                 number = -1;
                 e.printStackTrace();
@@ -1574,8 +1574,8 @@ public class DBImpl extends DB {
             return null;
         }
 
-        // Open the log file
-        String fname = filename.LogFileName(dbname_, log_number);
+        // open the log file
+        String fname = FileName.logFileName(dbname_, log_number);
         _SequentialFile file = env_.newSequentialFile(fname);
         Status status = new Status();
         // MaybeIgnoreError(status);
@@ -1626,7 +1626,7 @@ public class DBImpl extends DB {
                 status = WriteLevel0Table(mem, edit, null);
                 if (!status.ok()) {
                     // Reflect errors immediately so that conditions like full
-                    // file-systems cause the DB::Open() to fail.
+                    // file-systems cause the DB::open() to fail.
                     break;
                 }
                 mem.Unref();
@@ -1637,7 +1637,7 @@ public class DBImpl extends DB {
         if (status.ok() && mem != null) {
             status = WriteLevel0Table(mem, edit, null);
             // Reflect errors immediately so that conditions like full
-            // file-systems cause the DB::Open() to fail.
+            // file-systems cause the DB::open() to fail.
         }
 
         if (mem != null)

@@ -46,7 +46,7 @@ public class BlockBuilder {
         assert (!finished_);
         assert (counter_ <= options_.block_restart_interval);
         assert (buffer_.empty() // No values yet?
-                || options_.comparator.Compare(key, last_key_piece) > 0);
+                || options_.comparator.compare(key, last_key_piece) > 0);
         int shared = 0;
         if (counter_ < options_.block_restart_interval) {
             // See how much sharing to do with previous string

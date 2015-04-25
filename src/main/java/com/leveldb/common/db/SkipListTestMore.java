@@ -208,7 +208,7 @@ public class SkipListTestMore {
                 // << "key: " << key(pos)
                 // << "; gen: " << gen(pos)
                 // << "; initgen: "
-                // << initial_state.Get(key(pos));
+                // << initial_state.get(key(pos));
 
                 // Advance to next key in the valid key space
                 if (key(pos) < key(current)) {

@@ -77,7 +77,7 @@ public class MergingIterator extends Iterator {
                 if (child != current_) {
                     child.Seek(key());
                     if (child.Valid()
-                            && comparator_.Compare(key(), child.key()) == 0) {
+                            && comparator_.compare(key(), child.key()) == 0) {
                         child.Next();
                     }
                 }
@@ -148,7 +148,7 @@ public class MergingIterator extends Iterator {
             if (child.Valid()) {
                 if (smallest == null) {
                     smallest = child;
-                } else if (comparator_.Compare(child.key(), smallest.key()) < 0) {
+                } else if (comparator_.compare(child.key(), smallest.key()) < 0) {
                     smallest = child;
                 }
             }
@@ -163,7 +163,7 @@ public class MergingIterator extends Iterator {
             if (child.Valid()) {
                 if (largest == null) {
                     largest = child;
-                } else if (comparator_.Compare(child.key(), largest.key()) > 0) {
+                } else if (comparator_.compare(child.key(), largest.key()) > 0) {
                     largest = child;
                 }
             }

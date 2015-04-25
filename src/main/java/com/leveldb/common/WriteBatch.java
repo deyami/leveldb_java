@@ -19,7 +19,7 @@ import com.leveldb.util.util;
 
 
 /**
- * Write key-value Slice to memtable in a batch mode
+ * write key-value Slice to memtable in a batch mode
  * 2012-4-26, test cases of WriteBatch is added
  */
 public class WriteBatch {

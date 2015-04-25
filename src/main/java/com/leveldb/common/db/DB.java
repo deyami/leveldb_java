@@ -3,7 +3,7 @@ package com.leveldb.common.db;
 import com.leveldb.common.*;
 import com.leveldb.common.file.FileType;
 import com.leveldb.common.file._WritableFile;
-import com.leveldb.common.file.filename;
+import com.leveldb.common.file.FileName;
 import com.leveldb.common.log.Writer;
 import com.leveldb.common.options.Options;
 import com.leveldb.common.options.ReadOptions;
@@ -19,7 +19,7 @@ import java.util.List;
 //any external synchronization.
 
 public abstract class DB {
-    // Open the database with the specified "name".
+    // open the database with the specified "name".
     // Stores a pointer to a heap-allocated database in dbptr and returns
     // OK on success.
     // Stores NULL in dbptr and returns a non-OK status on error.
@@ -28,26 +28,26 @@ public abstract class DB {
     // Set the database entry for "key" to "value". Returns OK on success,
     // and a non-OK status on error.
     // Note: consider setting options.sync = true.
-    public Status Put(WriteOptions opt, Slice key, Slice value) {
+    public Status put(WriteOptions opt, Slice key, Slice value) {
         WriteBatch batch = new WriteBatch();
         batch.put(key, value);
-        return Write(opt, batch); // call concrete Write
+        return write(opt, batch); // call concrete write
     }
 
     // Remove the database entry (if any) for "key". Returns OK on
     // success, and a non-OK status on error. It is not an error if "key"
     // did not exist in the database.
     // Note: consider setting options.sync = true.
-    public Status Delete(WriteOptions opt, Slice key) {
+    public Status delete(WriteOptions opt, Slice key) {
         WriteBatch batch = new WriteBatch();
         batch.delete(key);
-        return Write(opt, batch);
+        return write(opt, batch);
     }
 
     // Apply the specified updates to the database.
     // Returns OK on success, non-OK on failure.
     // Note: consider setting options.sync = true.
-    public abstract Status Write(WriteOptions options, WriteBatch updates);
+    public abstract Status write(WriteOptions options, WriteBatch updates);
 
     // If the database contains an entry for "key" store the
     // corresponding value in value and return OK.
@@ -56,25 +56,25 @@ public abstract class DB {
     // a status for which Status::isNotFound() returns true.
     //
     // May return some other Status on an error.
-    public abstract Slice Get(ReadOptions options, Slice key, Status s);
+    public abstract Slice get(ReadOptions options, Slice key, Status s);
 
     // Return a heap-allocated iterator over the contents of the database.
-    // The result of NewIterator() is initially invalid (caller must
+    // The result of newIterator() is initially invalid (caller must
     // call one of the seek methods on the iterator before using it).
     //
     // Caller should delete the iterator when it is no longer needed.
     // The returned iterator should be deleted before this db is deleted.
-    public abstract Iterator NewIterator(ReadOptions options);
+    public abstract Iterator newIterator(ReadOptions options);
 
     // Return a handle to the current DB state. Iterators created with
     // this handle will all observe a stable snapshot of the current DB
-    // state. The caller must call ReleaseSnapshot(result) when the
+    // state. The caller must call releaseSnapshot(result) when the
     // snapshot is no longer needed.
-    public abstract Snapshot GetSnapshot();
+    public abstract Snapshot getSnapshot();
 
     // release a previously acquired snapshot. The caller must not
     // use "snapshot" after this call.
-    public abstract void ReleaseSnapshot(Snapshot snapshot);
+    public abstract void releaseSnapshot(Snapshot snapshot);
 
     // DB implementations can export properties about their state
     // via this method. If "property" is a valid property understood by this
@@ -89,7 +89,7 @@ public abstract class DB {
     // where <N> is an ASCII representation of a level number (e.g. "0").
     // "leveldb.stats" - returns a multi-line string that describes statistics
     // about the internal operation of the DB.
-    public abstract boolean GetProperty(Slice property, StringBuffer value);
+    public abstract boolean getProperty(Slice property, StringBuffer value);
 
     // For each i in [0,n-1], store in "sizes[i]", the approximate
     // file system space used by keys in "[range[i].start .. range[i].limit)".
@@ -99,18 +99,18 @@ public abstract class DB {
     // sizes will be one-tenth the size of the corresponding user data size.
     //
     // The results may not include the sizes of recently written data.
-    public abstract long[] GetApproximateSizes(Range range[], int n);
+    public abstract long[] getApproximateSizes(Range range[], int n);
 
-    public long GetApproximateSizes(Range range) {
-        return GetApproximateSizes(new Range[]{range}, 1)[0];
+    public long getApproximateSizes(Range range) {
+        return getApproximateSizes(new Range[]{range}, 1)[0];
     }
 
-    public abstract void CompactRange(Slice begin, Slice end);
+    public abstract void compactRange(Slice begin, Slice end);
 
     // Possible extensions:
     // (1) Add a method to compact a range of keys
 
-    public static DB Open(Options options, String dbname) {
+    public static DB open(Options options, String dbname) {
         DB dbptr = null;
         DBImpl impl = new DBImpl(options, dbname);
         impl.getmutex().lock();
@@ -119,8 +119,8 @@ public abstract class DB {
         // error_if_exists
         if (s.ok()) {
             long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.newWritableFile(filename
-                    .LogFileName(dbname, new_log_number));
+            _WritableFile lfile = options.env.newWritableFile(FileName
+                    .logFileName(dbname, new_log_number));
             {
                 edit.setLogNumber(new_log_number);
                 impl.logfile_ = lfile;
@@ -138,13 +138,13 @@ public abstract class DB {
             dbptr = impl;
         } else {
             // wlu, 2012-7-10, bugFix: something goes wrong, release resources
-            impl.Close();
+            impl.close();
             impl = null;
         }
         return dbptr;
     }
 
-    public static DB Open(Options options, String dbname, Status s_) {
+    public static DB open(Options options, String dbname, Status s_) {
         DB dbptr = null;
         DBImpl impl = new DBImpl(options, dbname);
         impl.getmutex().lock();
@@ -153,8 +153,8 @@ public abstract class DB {
         // error_if_exists
         if (s.ok()) {
             long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.newWritableFile(filename
-                    .LogFileName(dbname, new_log_number));
+            _WritableFile lfile = options.env.newWritableFile(FileName
+                    .logFileName(dbname, new_log_number));
             {
                 edit.setLogNumber(new_log_number);
                 impl.logfile_ = lfile;
@@ -172,7 +172,7 @@ public abstract class DB {
             dbptr = impl;
         } else {
             // wlu, 2012-7-10, bugFix: something goes wrong, release resources
-            impl.Close();
+            impl.close();
             impl = null;
 
         }
@@ -181,9 +181,9 @@ public abstract class DB {
         return dbptr;
     }
 
-    public abstract void Close();
+    public abstract void close();
 
-    public static Status DestroyDB(String dbname, Options options) {
+    public static Status destroyDB(String dbname, Options options) {
         Env env = options.env;
         List<String> filenames = new ArrayList<String>();
         // Ignore error in case directory does not exist
@@ -197,7 +197,7 @@ public abstract class DB {
         }
 
         FileLock lock = null;
-        String lockname = filename.LockFileName(dbname);
+        String lockname = FileName.lockFileName(dbname);
         lock = env.lockFile(lockname);
 
         Status s = Status.OK();
@@ -207,7 +207,7 @@ public abstract class DB {
             FileType type = new FileType();
             for (int i = 0; i < filenames.size(); i++) {
                 try {
-                    number = filename.ParseFileName(filenames.get(i), type);
+                    number = FileName.parseFileName(filenames.get(i), type);
                 } catch (Exception e) {
                     // delete the file whatever it is
                     number = 0;

@@ -5,7 +5,7 @@ import com.leveldb.common.Iterator;
 import com.leveldb.common.Slice;
 import com.leveldb.common.Status;
 import com.leveldb.common.file._WritableFile;
-import com.leveldb.common.file.filename;
+import com.leveldb.common.file.FileName;
 import com.leveldb.common.options.Options;
 import com.leveldb.common.options.ReadOptions;
 import com.leveldb.common.table.TableBuilder;
@@ -22,7 +22,7 @@ public class Builder {
         meta.setFile_size(0);
         iter.seekToFirst();
 
-        String fname = filename.TableFileName(dbname, meta.getNumber());
+        String fname = FileName.tableFileName(dbname, meta.getNumber());
         if (iter.valid()) {
             _WritableFile file = env.newWritableFile(fname);
 

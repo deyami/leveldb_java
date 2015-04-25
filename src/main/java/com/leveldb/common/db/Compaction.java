@@ -72,9 +72,9 @@ public class Compaction {
             List<FileMetaData> files = input_version_.files_.get(lvl);
             for (; level_ptrs_[lvl] < files.size(); ) {
                 FileMetaData f = files.get(level_ptrs_[lvl]);
-                if (user_cmp.Compare(user_key, f.largest.user_key()) <= 0) {
+                if (user_cmp.compare(user_key, f.largest.user_key()) <= 0) {
                     // We've advanced far enough
-                    if (user_cmp.Compare(user_key, f.smallest.user_key()) >= 0) {
+                    if (user_cmp.compare(user_key, f.smallest.user_key()) >= 0) {
                         // Key falls in this file's range, so definitely not
                         // base level
                         return false;
@@ -93,7 +93,7 @@ public class Compaction {
         // Scan to find earliest grandparent file that contains key.
         InternalKeyComparator icmp = input_version_.vset_.icmp_;
         while (grandparent_index_ < grandparents_.size()
-                && icmp.Compare(internal_key,
+                && icmp.compare(internal_key,
                 grandparents_.get(grandparent_index_).largest.Encode()) > 0) {
             if (seen_key_) {
                 overlapped_bytes_ += grandparents_.get(grandparent_index_).file_size;

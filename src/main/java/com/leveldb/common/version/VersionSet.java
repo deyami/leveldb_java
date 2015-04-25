@@ -9,7 +9,7 @@ import com.leveldb.common.db.InternalKey;
 import com.leveldb.common.db.TableCache;
 import com.leveldb.common.file._SequentialFile;
 import com.leveldb.common.file._WritableFile;
-import com.leveldb.common.file.filename;
+import com.leveldb.common.file.FileName;
 import com.leveldb.common.log.Reader;
 import com.leveldb.common.log.Writer;
 import com.leveldb.common.options.Options;
@@ -347,7 +347,7 @@ public class VersionSet {
             // No reason to unlock *mu here since we only hit this path in the
             // first call to LogAndApply (when opening the database).
             assert (descriptor_file_ == null);
-            new_manifest_file = filename.DescriptorFileName(dbname_,
+            new_manifest_file = FileName.descriptorFileName(dbname_,
                     manifest_file_number_);
             edit.setNextFile(next_file_number_);
             descriptor_file_ = env_.newWritableFile(new_manifest_file);
@@ -359,7 +359,7 @@ public class VersionSet {
         {
             mu.unlock();
 
-            // Write new record to MANIFEST log
+            // write new record to MANIFEST log
             if (s.ok()) {
                 byte[] record = edit.encodeTo();
                 s = descriptor_log_.AddRecord(new Slice(record));
@@ -371,7 +371,7 @@ public class VersionSet {
             // If we just created a new descriptor file, install it by writing a
             // new CURRENT file that points to it.
             if (s.ok() && new_manifest_file != "") {
-                s = filename.SetCurrentFile(env_, dbname_,
+                s = FileName.setCurrentFile(env_, dbname_,
                         manifest_file_number_);
             }
 
@@ -411,7 +411,7 @@ public class VersionSet {
         // Read "CURRENT" file, which contains a pointer to the current manifest
         // file
         String current = Env.readFileToString(env_,
-                filename.CurrentFileName(dbname_));
+                FileName.currentFileName(dbname_));
 
         if (current == null || current.length() == 0
                 || current.charAt(current.length() - 1) != '\n') {
@@ -447,10 +447,10 @@ public class VersionSet {
                 if (s.ok()) {
                     if (edit.has_comparator_
                             && edit.comparator_.compareTo(icmp_
-                            .user_comparator().Name()) != 0) {
+                            .user_comparator().name()) != 0) {
                         s = Status.invalidArgument(new Slice(edit.comparator_
                                         + "does not match existing comparator "),
-                                new Slice(icmp_.user_comparator().Name()));
+                                new Slice(icmp_.user_comparator().name()));
                     }
                 }
 
@@ -615,7 +615,7 @@ public class VersionSet {
             for (int i = 0; i < current_.files_.get(level).size(); i++) {
                 FileMetaData f = current_.files_.get(level).get(i);
                 if (compact_pointer_[level] == ""
-                        || icmp_.Compare(f.largest.Encode(), new Slice(
+                        || icmp_.compare(f.largest.Encode(), new Slice(
                         compact_pointer_[level])) > 0) {
                     c.inputs_.get(0).add(f);
                     break;
@@ -939,7 +939,7 @@ public class VersionSet {
     }
 
     /**
-     * Get files for both level and level + 1 for compaction <li>get overlaps
+     * get files for both level and level + 1 for compaction <li>get overlaps
      * from "level + 1"</li> <li>get whole range and reversely pre-get a
      * expended @ level</li> <li>See if we can grow the number of inputs in
      * pre-get "level" without changing the number of "level+1" files we pick
@@ -956,7 +956,7 @@ public class VersionSet {
         current_.GetOverlappingInputs(level + 1, smallest, largest,
                 c.inputs_.get(1));
 
-        // Get entire range covered by compaction
+        // get entire range covered by compaction
         InternalKey all_start = new InternalKey();
         InternalKey all_limit = new InternalKey();
         // range may be larger than [smallest, largest]
@@ -1026,7 +1026,7 @@ public class VersionSet {
 
         // Save metadata
         VersionEdit edit = new VersionEdit();
-        edit.setComparatorName(new Slice(icmp_.user_comparator().Name()));
+        edit.setComparatorName(new Slice(icmp_.user_comparator().name()));
 
         // Save compaction pointers
         for (int level = 0; level < config.kNumLevels; level++) {

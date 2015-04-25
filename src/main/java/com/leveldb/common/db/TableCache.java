@@ -2,7 +2,7 @@ package com.leveldb.common.db;
 
 import com.leveldb.common.*;
 import com.leveldb.common.file._RandomAccessFile;
-import com.leveldb.common.file.filename;
+import com.leveldb.common.file.FileName;
 import com.leveldb.common.options.Options;
 import com.leveldb.common.options.ReadOptions;
 import com.leveldb.util.util;
@@ -94,7 +94,7 @@ public class TableCache {
         Slice key = new Slice(buf);
         Cache.Handle handle = cache_.lookup(key);
         if (handle == null) {
-            String fname = filename.TableFileName(dbname_, file_number);
+            String fname = FileName.tableFileName(dbname_, file_number);
             _RandomAccessFile file = null;
             Table table = null;
             file = env_.newRandomAccessFile(fname);

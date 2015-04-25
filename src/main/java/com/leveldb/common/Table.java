@@ -195,7 +195,7 @@ public class Table {
 
     /**
      * Returns a new iterator over the table contents. The result of
-     * NewIterator() is initially invalid (caller must call one of the seek
+     * newIterator() is initially invalid (caller must call one of the seek
      * methods on the iterator before using it).
      * <p/>
      * outer iterator is index_block.iterator BlockFunction here will read
