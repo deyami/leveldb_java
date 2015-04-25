@@ -35,7 +35,7 @@ public class WriteBatchTest extends TestCase {
         Status s = WriteBatchInternal.InsertInto(b, mem);
         int count = 0;
         Iterator iter = mem.NewIterator();
-        for (iter.SeekToFirst(); iter.Valid(); iter.Next()) {
+        for (iter.seekToFirst(); iter.valid(); iter.next()) {
             ParsedInternalKey ikey = InternalKey.ParseInternalKey_(iter.key());
             ASSERT_TRUE(ikey != null);
             switch (ikey.type.value) {

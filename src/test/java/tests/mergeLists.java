@@ -27,7 +27,7 @@ public class mergeLists {
         Iterator<Integer> added_iter = added_list.iterator();
         Iterator<Integer> base_iter = base_list.iterator();
         int lbase = 0;
-        // since there is no "Prev" function for Interator,
+        // since there is no "prev" function for Interator,
         // we need to use this boolean to record whether
         // it needs to move next
         boolean base_added = true;

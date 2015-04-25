@@ -60,36 +60,36 @@ public class IteratorWrapper {
 
     public void Next() {
         assert (iter_ != null);
-        iter_.Next();
+        iter_.next();
         Update();
     }
 
     public void Prev() {
         assert (iter_ != null);
-        iter_.Prev();
+        iter_.prev();
         Update();
     }
 
     public void Seek(Slice k) {
         assert (iter_ != null);
-        iter_.Seek(k);
+        iter_.seek(k);
         Update();
     }
 
     public void SeekToFirst() {
         assert (iter_ != null);
-        iter_.SeekToFirst();
+        iter_.seekToFirst();
         Update();
     }
 
     public void SeekToLast() {
         assert (iter_ != null);
-        iter_.SeekToLast();
+        iter_.seekToLast();
         Update();
     }
 
     private void Update() {
-        valid_ = iter_.Valid();
+        valid_ = iter_.valid();
         if (valid_) {
             key_ = iter_.key();
         }

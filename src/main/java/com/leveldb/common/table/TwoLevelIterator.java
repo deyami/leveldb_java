@@ -50,7 +50,7 @@ public class TwoLevelIterator extends Iterator {
     // (outer) coarse level: seek to a "range"
     // set data_iter_ to the coarse range
     // (inner) fine level: seek to ...
-    public void Seek(Slice target) {
+    public void seek(Slice target) {
         index_iter_.Seek(target);
         InitDataBlock();
         if (data_iter_.iter() != null) {
@@ -63,7 +63,7 @@ public class TwoLevelIterator extends Iterator {
     // set data_iter_ to index_iter_'s value as inner iterator
     // (inner) data_iter_ seek to the first
     // move next and skip empty/invalid ...
-    public void SeekToFirst() {
+    public void seekToFirst() {
         index_iter_.SeekToFirst();
         InitDataBlock();
         if (data_iter_.iter() != null) {
@@ -76,7 +76,7 @@ public class TwoLevelIterator extends Iterator {
     // set data_iter_ to index_iter_'s value as inner iterator
     // (inner) data_iter_ seek to the last
     // move prev and skip empty/invalid ...
-    public void SeekToLast() {
+    public void seekToLast() {
         index_iter_.SeekToLast();
         InitDataBlock();
         if (data_iter_.iter() != null) {
@@ -86,33 +86,33 @@ public class TwoLevelIterator extends Iterator {
     }
 
     // data_iter_'s next and skip empty/invalid by moving next...
-    public void Next() {
-        assert (Valid());
+    public void next() {
+        assert (valid());
         data_iter_.Next();
         SkipEmptyDataBlocksForward();
     }
 
     // data_iter_'s prev and skip empty/invalid by moving prev...
-    public void Prev() {
-        assert (Valid());
+    public void prev() {
+        assert (valid());
         data_iter_.Prev();
         SkipEmptyDataBlocksBackward();
     }
 
     // whether data_iter_ is valid
-    public boolean Valid() {
+    public boolean valid() {
         return data_iter_.Valid();
     }
 
     // return data_iter_'s key
     public Slice key() {
-        assert (Valid());
+        assert (valid());
         return data_iter_.key();
     }
 
     // return data_iter_'s vlue
     public Slice value() {
-        assert (Valid());
+        assert (valid());
         return data_iter_.value();
     }
 

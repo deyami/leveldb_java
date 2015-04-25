@@ -69,7 +69,7 @@ public class Block {
         int num_restarts_; // Number of uint32_t entries in restart array .
         // Seems to be fixed after construction
 
-        // current_ is offset in data_ of current entry. >= restarts_ if !Valid
+        // current_ is offset in data_ of current entry. >= restarts_ if !valid
         int current_; // offset of restarts
         int restart_index_; // Index of restart block in which current_ falls
         Slice key_ = new Slice();
@@ -99,7 +99,7 @@ public class Block {
         }
 
         /**
-         * Seek to index-th restart block: 1) set #restart_index# to index; 2)
+         * seek to index-th restart block: 1) set #restart_index# to index; 2)
          * get the #offset# of the index-th restart block; 3) set #value_# to be
          * a dummy Slice with offset = #offset#
          */
@@ -124,7 +124,7 @@ public class Block {
             assert (num_restarts_ > 0);
         }
 
-        public boolean Valid() {
+        public boolean valid() {
             return current_ < restarts_;
         }
 
@@ -133,22 +133,22 @@ public class Block {
         }
 
         public Slice key() {
-            assert (Valid());
+            assert (valid());
             return key_;
         }
 
         public Slice value() {
-            assert (Valid());
+            assert (valid());
             return value_;
         }
 
-        public void Next() {
-            assert (Valid());
+        public void next() {
+            assert (valid());
             ParseNextKey();
         }
 
-        public void Prev() {
-            assert (Valid());
+        public void prev() {
+            assert (valid());
 
             // Scan backwards to a restart point before current_
             int original = current_;
@@ -177,7 +177,7 @@ public class Block {
          * Binary search in restart array to find the first restart point with a
          * key >= target
          */
-        public void Seek(Slice target) {
+        public void seek(Slice target) {
             int left = 0;
             int right = num_restarts_ - 1;
             while (left < right) {
@@ -219,12 +219,12 @@ public class Block {
             }
         }
 
-        public void SeekToFirst() {
+        public void seekToFirst() {
             SeekToRestartPoint(0);
             ParseNextKey();
         }
 
-        public void SeekToLast() {
+        public void seekToLast() {
             SeekToRestartPoint(num_restarts_ - 1);
             while (ParseNextKey() && NextEntryOffset() < restarts_) {
                 // Keep skipping
@@ -353,12 +353,12 @@ public class Block {
 
     public Iterator NewIterator(Comparator cmp) {
         if (size_ < 2 * util.SIZEOF_INT) {
-            return Iterator.NewErrorIterator(Status.Corruption(new Slice(
+            return Iterator.newErrorIterator(Status.Corruption(new Slice(
                     "bad block contents"), null));
         }
         int num_restarts = NumRestarts();
         if (num_restarts == 0) {
-            return Iterator.NewEmptyIterator();
+            return Iterator.newEmptyIterator();
         } else {
             return new Iter(cmp, data_, restart_offset_, num_restarts);
         }
@@ -392,13 +392,13 @@ public class Block {
             // Fast path: all three values are encoded in one byte each
             p.curr_pos += 3;
         } else {
-            shared = coding.GetVarint32(p);
+            shared = coding.getVarint32(p);
             if (p.curr_pos > limit)
                 return false;
-            non_shared = coding.GetVarint32(p);
+            non_shared = coding.getVarint32(p);
             if (p.curr_pos > limit)
                 return false;
-            value_length = coding.GetVarint32(p);
+            value_length = coding.getVarint32(p);
             if (p.curr_pos > limit)
                 return false;
         }
@@ -480,7 +480,7 @@ public class Block {
                 // Ok
                 break;
             // case CompressionType.kSnappyCompression:
-            // int ulength = coding.GetVarint32(data, n); // get the vint32 as
+            // int ulength = coding.getVarint32(data, n); // get the vint32 as
             // // length
             //
             // // if (!port::Snappy_GetUncompressedLength(data, n, &ulength)) {

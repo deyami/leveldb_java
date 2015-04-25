@@ -131,11 +131,11 @@ public class crc32java {
 //		String a2 = "test";
 //		String b = a1+a2;
 //		crc32java c = new crc32java();
-//		int r = c.Value(a1.getBytes(), a1.getBytes().length);
+//		int r = c.value(a1.getBytes(), a1.getBytes().length);
 //		r = c.Extend(r, a2.getBytes(), a2.getBytes().length);
 //		System.out.println(r);
 //		c.reset();
-//		r = c.Value(b.getBytes(), b.getBytes().length);
+//		r = c.value(b.getBytes(), b.getBytes().length);
 //		System.out.println(r);
 
         int init = -879830186;

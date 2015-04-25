@@ -35,14 +35,14 @@ public class BlockHandle {
 
     public byte[] EncodeTo() {
         byte[] dst = new byte[0];
-        return util.add(dst, coding.PutVarint64(offset_), coding.PutVarint64(size_));
+        return util.add(dst, coding.putVarint64(offset_), coding.putVarint64(size_));
     }
 
     //I use ByteCollection as input rather than Slice, because this will make everything easier
     public int DecodeFrom(ByteCollection input) {
         //ByteCollection bc = new ByteCollection(input.data(), 0);
-        offset_ = coding.GetVarint64(input);
-        size_ = coding.GetVarint64(input);
+        offset_ = coding.getVarint64(input);
+        size_ = coding.getVarint64(input);
         return input.curr_pos;// return the current pos (as length)
     }
 

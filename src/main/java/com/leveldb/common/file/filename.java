@@ -3,7 +3,7 @@ package com.leveldb.common.file;
 import com.leveldb.common.Env;
 import com.leveldb.common.Slice;
 import com.leveldb.common.Status;
-import com.leveldb.util.logging;
+import com.leveldb.util.Logging;
 
 // TODO: seems that there are so many functions to be add here;
 // I wanna fill each of them one by one
@@ -54,7 +54,7 @@ public class filename {
             rest = rest.substring(("MANIFEST-").length());
             long n = 0;
             try {
-                n = logging.ConsumeDecimalNumber(rest);
+                n = Logging.consumeDecimalNumber(rest);
             } catch (Exception e) {
                 throw e;
             }
@@ -71,7 +71,7 @@ public class filename {
                         "prefix error, hint: should be [0-9]+.(log|sst|...)");
             }
             try {
-                num = logging.ConsumeDecimalNumber(rest.substring(0, dotpos));
+                num = Logging.consumeDecimalNumber(rest.substring(0, dotpos));
             } catch (Exception e) {
                 throw e;
             }

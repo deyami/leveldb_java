@@ -84,7 +84,7 @@ class SkipListIterator<Key, Comparator extends _Comparable<Key>> {
     }
 
     // Returns the key at the current position.
-    // REQUIRES: Valid()
+    // REQUIRES: valid()
     Key key() {
         assert (Valid());
         if (node_ == null) {
@@ -95,14 +95,14 @@ class SkipListIterator<Key, Comparator extends _Comparable<Key>> {
     }
 
     // Advances to the next position.
-    // REQUIRES: Valid()
+    // REQUIRES: valid()
     void Next() {
         assert (Valid());
         node_ = node_.Next(0);
     }
 
     // Advances to the previous position.
-    // REQUIRES: Valid()
+    // REQUIRES: valid()
     void Prev() {
         // Instead of using explicit "prev" links, we just search for the
         // last node that falls before key.
@@ -119,13 +119,13 @@ class SkipListIterator<Key, Comparator extends _Comparable<Key>> {
     }
 
     // Position at the first entry in list.
-    // Final state of iterator is Valid() iff list is not empty.
+    // Final state of iterator is valid() iff list is not empty.
     void SeekToFirst() {
         node_ = list_.head_.Next(0);
     }
 
     // Position at the last entry in list.
-    // Final state of iterator is Valid() iff list is not empty.
+    // Final state of iterator is valid() iff list is not empty.
     void SeekToLast() {
         node_ = list_.FindLast();
         if (node_ == list_.head_) {
@@ -148,7 +148,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
 
     Node<Key> head_;
 
-    // Modified only by Insert(). Read racily by readers, but stale
+    // Modified only by insert(). Read racily by readers, but stale
     // values are ok.
     AtomicPointer<Integer> max_height_; // Height of the entire list
 
@@ -176,7 +176,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
         }
     }
 
-    // Read/written only by Insert().
+    // Read/written only by insert().
     Random rnd_;
 
     /* construction */
@@ -213,7 +213,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
         }
     }
 
-    /* Insert a key into the list */
+    /* insert a key into the list */
     public void Insert(Key key) {
         List<Node<Key>> prev = new ArrayList<Node<Key>>(kMaxHeight);
         for (int i = 0; i < kMaxHeight; i++) {

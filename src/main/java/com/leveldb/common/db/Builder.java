@@ -20,15 +20,15 @@ public class Builder {
                                     TableCache table_cache, Iterator iter, FileMetaData meta) {
         Status s = new Status();
         meta.setFile_size(0);
-        iter.SeekToFirst();
+        iter.seekToFirst();
 
         String fname = filename.TableFileName(dbname, meta.getNumber());
-        if (iter.Valid()) {
+        if (iter.valid()) {
             _WritableFile file = env.NewWritableFile(fname);
 
             TableBuilder builder = new TableBuilder(options, file);
             meta.getSmallest().DecodeFrom(iter.key());
-            for (; iter.Valid(); iter.Next()) {
+            for (; iter.valid(); iter.next()) {
                 Slice key = iter.key();
                 meta.getLargest().DecodeFrom(key);
                 builder.Add(key, iter.value());

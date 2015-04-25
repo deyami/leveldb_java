@@ -33,14 +33,14 @@ public class Version {
 
     // / member
     public VersionSet vset_; // VersionSet to which this Version belongs
-    public Version next_; // Next version in linked list
+    public Version next_; // next version in linked list
     public Version prev_; // Previous version in linked list
     public int refs_; // Number of live refs to this version
 
     // List of files per level
     public List<List<FileMetaData>> files_;
 
-    // Next file to compact based on seek stats.
+    // next file to compact based on seek stats.
     public FileMetaData file_to_compact_;
     public int file_to_compact_level_;
 
@@ -64,7 +64,7 @@ public class Version {
      * that occurs in the file, and value() is an 16-byte value containing the
      * file number and file size, both encoded using EncodeFixed64.
      *
-     * Key: largest key of the file; Value: file number | file size; NOTE: for
+     * Key: largest key of the file; value: file number | file size; NOTE: for
      * level > 0; largest key of the file is enough 'cause no overlap of keys
      */
     static class LevelFileNumIterator extends Iterator {
@@ -75,34 +75,34 @@ public class Version {
             index_ = flist.size(); // Marks as invalid
         }
 
-        public boolean Valid() {
+        public boolean valid() {
             return index_ < flist_.size();
         }
 
         /*
          * seek to the file containing target key(non-Javadoc)
          *
-         * @see com.leveldb.common.Iterator#Seek(com.leveldb.common.Slice)
+         * @see com.leveldb.common.Iterator#seek(com.leveldb.common.Slice)
          */
-        public void Seek(Slice target) {
+        public void seek(Slice target) {
             index_ = FindFile(icmp_, flist_, target);
         }
 
-        public void SeekToFirst() {
+        public void seekToFirst() {
             index_ = 0;
         }
 
-        public void SeekToLast() {
+        public void seekToLast() {
             index_ = flist_.isEmpty() ? 0 : flist_.size() - 1;
         }
 
-        public void Next() {
-            assert (Valid());
+        public void next() {
+            assert (valid());
             index_++;
         }
 
-        public void Prev() {
-            assert (Valid());
+        public void prev() {
+            assert (valid());
             if (index_ == 0) {
                 index_ = flist_.size(); // Marks as invalid
             } else {
@@ -111,12 +111,12 @@ public class Version {
         }
 
         public Slice key() {
-            assert (Valid());
+            assert (valid());
             return flist_.get(index_).getLargest().Encode();
         }
 
         public Slice value() {
-            assert (Valid());
+            assert (valid());
             util.putLong(value_buf_, 0, flist_.get(index_).getNumber());
             util.putLong(value_buf_, 8, flist_.get(index_).getFile_size());
             return new Slice(value_buf_);
@@ -152,7 +152,7 @@ public class Version {
         public Iterator exec(Object arg, ReadOptions options, Slice file_value) {
             TableCache cache = (TableCache) arg;
             if (file_value.size() != 16) { // number | size
-                return Iterator.NewErrorIterator(Status.Corruption(new Slice(
+                return Iterator.newErrorIterator(Status.Corruption(new Slice(
                         "FileReader invoked with unexpected value"), null));
             } else {
                 byte number_size[] = file_value.data();
@@ -185,7 +185,7 @@ public class Version {
     }
 
     /*
-     * Lookup the value for key. If found, store it in *val and return OK. Else
+     * lookup the value for key. If found, store it in *val and return OK. Else
      * return a non-OK status. Fills *stats. REQUIRES: lock is not held
      */
     public static class GetStats {
@@ -199,7 +199,7 @@ public class Version {
      */
     boolean GetValue(Comparator cmp, Iterator iter, Slice user_key,
                      Slice value, Status[] s) {
-        if (!iter.Valid()) {
+        if (!iter.valid()) {
             return false; // not stop
         }
         ParsedInternalKey parsed_key = InternalKey
@@ -361,7 +361,7 @@ public class Version {
 
                 Iterator iter = vset_.table_cache_.NewIterator(options,
                         f.getNumber(), f.getFile_size(), null);
-                iter.Seek(ikey);
+                iter.seek(ikey);
 
                 boolean done = GetValue(ucmp, iter, user_key, value, s);
                 value_array = util.add(value_array, value.data()); // add value

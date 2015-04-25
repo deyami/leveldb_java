@@ -35,11 +35,11 @@ public class MergingIterator extends Iterator {
         }
     }
 
-    public boolean Valid() {
+    public boolean valid() {
         return (current_ != null);
     }
 
-    public void SeekToFirst() {
+    public void seekToFirst() {
         for (int i = 0; i < n_; i++) {
             children_[i].SeekToFirst();
         }
@@ -47,7 +47,7 @@ public class MergingIterator extends Iterator {
         direction_ = Direction.kForward;
     }
 
-    public void SeekToLast() {
+    public void seekToLast() {
         for (int i = 0; i < n_; i++) {
             children_[i].SeekToLast();
         }
@@ -55,7 +55,7 @@ public class MergingIterator extends Iterator {
         direction_ = Direction.kReverse;
     }
 
-    public void Seek(Slice target) {
+    public void seek(Slice target) {
         for (int i = 0; i < n_; i++) {
             children_[i].Seek(target);
         }
@@ -63,8 +63,8 @@ public class MergingIterator extends Iterator {
         direction_ = Direction.kForward;
     }
 
-    public void Next() {
-        assert (Valid());
+    public void next() {
+        assert (valid());
 
         // Ensure that all children are positioned after key().
         // If we are moving in the forward direction, it is already
@@ -89,8 +89,8 @@ public class MergingIterator extends Iterator {
         FindSmallest();
     }
 
-    public void Prev() {
-        assert (Valid());
+    public void prev() {
+        assert (valid());
 
         // Ensure that all children are positioned before key().
         // If we are moving in the reverse direction, it is already
@@ -121,12 +121,12 @@ public class MergingIterator extends Iterator {
     }
 
     public Slice key() {
-        assert (Valid());
+        assert (valid());
         return current_.key();
     }
 
     public Slice value() {
-        assert (Valid());
+        assert (valid());
         return current_.value();
     }
 
@@ -189,7 +189,7 @@ public class MergingIterator extends Iterator {
     public static Iterator NewMergingIterator(Comparator cmp, Iterator list[], int n) {
         assert (n >= 0);
         if (n == 0) {
-            return NewEmptyIterator();
+            return newEmptyIterator();
         } else if (n == 1) {
             return list[0];
         } else {

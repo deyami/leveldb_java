@@ -60,7 +60,7 @@ public abstract class DB {
 
     // Return a heap-allocated iterator over the contents of the database.
     // The result of NewIterator() is initially invalid (caller must
-    // call one of the Seek methods on the iterator before using it).
+    // call one of the seek methods on the iterator before using it).
     //
     // Caller should delete the iterator when it is no longer needed.
     // The returned iterator should be deleted before this db is deleted.
@@ -72,7 +72,7 @@ public abstract class DB {
     // snapshot is no longer needed.
     public abstract Snapshot GetSnapshot();
 
-    // Release a previously acquired snapshot. The caller must not
+    // release a previously acquired snapshot. The caller must not
     // use "snapshot" after this call.
     public abstract void ReleaseSnapshot(Snapshot snapshot);
 
@@ -82,7 +82,7 @@ public abstract class DB {
     // true. Otherwise returns false.
     //
     //
-    // Valid property names include:
+    // valid property names include:
     //
     // "leveldb.num-files-at-level<N>" - return the number of files at level
     // <N>,
@@ -122,7 +122,7 @@ public abstract class DB {
             _WritableFile lfile = options.env.NewWritableFile(filename
                     .LogFileName(dbname, new_log_number));
             {
-                edit.SetLogNumber(new_log_number);
+                edit.setLogNumber(new_log_number);
                 impl.logfile_ = lfile;
                 impl.logfile_number_ = new_log_number;
                 impl.log_ = new Writer(lfile);
@@ -156,7 +156,7 @@ public abstract class DB {
             _WritableFile lfile = options.env.NewWritableFile(filename
                     .LogFileName(dbname, new_log_number));
             {
-                edit.SetLogNumber(new_log_number);
+                edit.setLogNumber(new_log_number);
                 impl.logfile_ = lfile;
                 impl.logfile_number_ = new_log_number;
                 impl.log_ = new Writer(lfile);

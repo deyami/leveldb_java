@@ -26,7 +26,7 @@ public class LookupKey {
         // int needed = usize + 13; // A conservative estimate
         data = new byte[0];
         start_ = 0;
-        byte len_[] = coding.EncodeVarint32(usize + 8);
+        byte len_[] = coding.encodeVarint32(usize + 8);
         kstart_ = len_.length;
 
         data = util.addN(data, len_,// size|

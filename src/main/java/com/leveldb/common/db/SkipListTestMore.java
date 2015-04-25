@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 //
 //At the beginning of a read, we snapshot the last inserted
 //generation number for each key.  We then iterate, including random
-//calls to Next() and Seek().  For every key we encounter, we
+//calls to next() and seek().  For every key we encounter, we
 //check that it is either expected given the initial snapshot or has
 //been concurrently added since the iterator started.
 
@@ -76,13 +76,13 @@ public class SkipListTestMore {
     static long RandomTarget(Random rnd) {
         switch (Math.abs(rnd.nextInt()) % 10) {
             case 0:
-                // Seek to beginning
+                // seek to beginning
                 return MakeKey(0, 0);
             case 1:
-                // Seek to end
+                // seek to end
                 return MakeKey(K, 0);
             default:
-                // Seek to middle
+                // seek to middle
                 return MakeKey((Math.abs(rnd.nextInt())) % K, 0);
         }
     }

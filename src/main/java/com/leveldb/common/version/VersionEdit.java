@@ -21,10 +21,10 @@ import java.util.Set;
  */
 public class VersionEdit {
     public VersionEdit() {
-        Clear();
+        clear();
     }
 
-    public void Clear() {
+    public void clear() {
         comparator_ = "";
         log_number_ = 0;
         prev_log_number_ = 0;
@@ -40,41 +40,39 @@ public class VersionEdit {
         compact_pointers_ = new ArrayList<Pair<Integer, InternalKey>>();
     }
 
-    ;
-
-    public void SetComparatorName(Slice name) {
+    public void setComparatorName(Slice name) {
         has_comparator_ = true;
         comparator_ = name.toString();
     }
 
-    public void SetLogNumber(long num) {
+    public void setLogNumber(long num) {
         has_log_number_ = true;
         log_number_ = num;
     }
 
-    public void SetPrevLogNumber(long num) {
+    public void setPrevLogNumber(long num) {
         has_prev_log_number_ = true;
         prev_log_number_ = num;
     }
 
-    public void SetNextFile(long num) {
+    public void setNextFile(long num) {
         has_next_file_number_ = true;
         next_file_number_ = num;
     }
 
-    public void SetLastSequence(SequenceNumber seq) {
+    public void setLastSequence(SequenceNumber seq) {
         has_last_sequence_ = true;
         last_sequence_ = seq;
     }
 
-    public void SetCompactPointer(int level, InternalKey key) {
+    public void setCompactPointer(int level, InternalKey key) {
         compact_pointers_.add(new Pair<Integer, InternalKey>(level, key));
     }
 
     // Add the specified file at the specified number.
     // REQUIRES: This version has not been saved (see VersionSet::SaveTo)
     // REQUIRES: "smallest" and "largest" are smallest and largest keys in file
-    public void AddFile(int level, long file, long file_size, InternalKey smallest,
+    public void addFile(int level, long file, long file_size, InternalKey smallest,
                         InternalKey largest) {
         FileMetaData f = new FileMetaData();
         f.setNumber(file);
@@ -85,64 +83,60 @@ public class VersionEdit {
     }
 
     // Delete the specified "file" from the specified "level".
-    public void DeleteFile(int level, long file) {
+    public void deleteFile(int level, long file) {
         deleted_files_.add(new Pair<Integer, Long>(level, file));
     }
 
-    public byte[] EncodeTo() {
+    public byte[] encodeTo() {
         byte[] ret = new byte[0];
         if (has_comparator_) {
-            ret = util.add(ret, coding.PutVarint32(Tag.kComparator),
-                    coding.PutLengthPrefixedSlice(new Slice(comparator_)));
+            ret = util.add(ret, coding.putVarint32(Tag.kComparator),
+                    coding.putLengthPrefixedSlice(new Slice(comparator_)));
         }
         if (has_log_number_) {
-            ret = util.add(ret, coding.PutVarint32(Tag.kLogNumber),
-                    coding.PutVarint64(log_number_));
+            ret = util.add(ret, coding.putVarint32(Tag.kLogNumber),
+                    coding.putVarint64(log_number_));
         }
         if (has_prev_log_number_) {
-            ret = util.add(ret, coding.PutVarint32(Tag.kPrevLogNumber),
-                    coding.PutVarint64(prev_log_number_));
+            ret = util.add(ret, coding.putVarint32(Tag.kPrevLogNumber),
+                    coding.putVarint64(prev_log_number_));
         }
         if (has_next_file_number_) {
-            ret = util.add(ret, coding.PutVarint32(Tag.kNextFileNumber),
-                    coding.PutVarint64(next_file_number_));
+            ret = util.add(ret, coding.putVarint32(Tag.kNextFileNumber),
+                    coding.putVarint64(next_file_number_));
         }
         if (has_last_sequence_) {
-            ret = util.add(ret, coding.PutVarint32(Tag.kLastSequence),
-                    coding.PutVarint64(last_sequence_.value));
+            ret = util.add(ret, coding.putVarint32(Tag.kLastSequence),
+                    coding.putVarint64(last_sequence_.value));
         }
 
         for (int i = 0; i < compact_pointers_.size(); i++) {
             ret = util.addN(
                     ret,
-                    coding.PutVarint32(Tag.kCompactPointer),
-                    coding.PutVarint32(compact_pointers_.get(i).getFirst()
-                            .intValue()),
-                    coding.PutLengthPrefixedSlice(compact_pointers_.get(i)
-                            .getSecond().Encode()));
+                    coding.putVarint32(Tag.kCompactPointer),
+                    coding.putVarint32(compact_pointers_.get(i).getFirst().intValue()),
+                    coding.putLengthPrefixedSlice(compact_pointers_.get(i).getSecond().Encode()));
             // level
         }
 
-        java.util.Iterator<Pair<Integer, Long>> iter = deleted_files_
-                .iterator();
+        java.util.Iterator<Pair<Integer, Long>> iter = deleted_files_.iterator();
         while (iter.hasNext()) {
             Pair<Integer, Long> p = iter.next();
-            ret = util.addN(ret, coding.PutVarint32(Tag.kDeletedFile),
-                    coding.PutVarint32(p.getFirst().intValue()),
-                    coding.PutVarint64(p.getSecond().longValue()));
+            ret = util.addN(ret, coding.putVarint32(Tag.kDeletedFile),
+                    coding.putVarint32(p.getFirst().intValue()),
+                    coding.putVarint64(p.getSecond().longValue()));
         }
 
-        java.util.Iterator<Pair<Integer, FileMetaData>> iter2 = new_files_
-                .iterator();
+        java.util.Iterator<Pair<Integer, FileMetaData>> iter2 = new_files_.iterator();
         while (iter2.hasNext()) {
             Pair<Integer, FileMetaData> p = iter2.next();
             FileMetaData f = p.getSecond();
-            ret = util.addN(ret, coding.PutVarint32(Tag.kNewFile),
-                    coding.PutVarint32(p.getFirst().intValue()),
-                    coding.PutVarint64(f.getNumber()),
-                    coding.PutVarint64(f.getFile_size()),
-                    coding.PutLengthPrefixedSlice(f.getSmallest().Encode()),
-                    coding.PutLengthPrefixedSlice(f.getLargest().Encode()));
+            ret = util.addN(ret, coding.putVarint32(Tag.kNewFile),
+                    coding.putVarint32(p.getFirst().intValue()),
+                    coding.putVarint64(f.getNumber()),
+                    coding.putVarint64(f.getFile_size()),
+                    coding.putLengthPrefixedSlice(f.getSmallest().Encode()),
+                    coding.putLengthPrefixedSlice(f.getLargest().Encode()));
 
         }
 
@@ -150,8 +144,8 @@ public class VersionEdit {
 
     }
 
-    public Status DecodeFrom(Slice src) {
-        Clear();
+    public Status decodeFrom(Slice src) {
+        clear();
         // Slice input = src;
         ByteCollection input = new ByteCollection(src.data(), 0);
         String msg = null;
@@ -165,7 +159,7 @@ public class VersionEdit {
         InternalKey key;
 
         while (msg == null && !input.STOP()) {
-            tag = coding.GetVarint32(input);
+            tag = coding.getVarint32(input);
             if (!input.OK()) {
                 return Status.Corruption(
                         new Slice("VersionEdit Decode Error: "), new Slice(
@@ -173,7 +167,7 @@ public class VersionEdit {
             }
             switch (tag) {
                 case Tag.kComparator:
-                    str = coding.GetLengthPrefixedSlice(input);
+                    str = coding.getLengthPrefixedSlice(input);
                     if (input.OK()) {
                         comparator_ = str.toString();
                         has_comparator_ = true;
@@ -183,7 +177,7 @@ public class VersionEdit {
                     break;
 
                 case Tag.kLogNumber:
-                    log_number_ = coding.GetVarint64(input);
+                    log_number_ = coding.getVarint64(input);
                     if (input.OK()) {
                         has_log_number_ = true;
                     } else {
@@ -192,7 +186,7 @@ public class VersionEdit {
                     break;
 
                 case Tag.kPrevLogNumber:
-                    prev_log_number_ = coding.GetVarint64(input);
+                    prev_log_number_ = coding.getVarint64(input);
                     if (input.OK()) {
                         has_prev_log_number_ = true;
                     } else {
@@ -201,7 +195,7 @@ public class VersionEdit {
                     break;
 
                 case Tag.kNextFileNumber:
-                    next_file_number_ = coding.GetVarint64(input);
+                    next_file_number_ = coding.getVarint64(input);
                     if (input.OK()) {
                         has_next_file_number_ = true;
                     } else {
@@ -210,7 +204,7 @@ public class VersionEdit {
                     break;
 
                 case Tag.kLastSequence:
-                    last_sequence_ = new SequenceNumber(coding.GetVarint64(input));
+                    last_sequence_ = new SequenceNumber(coding.getVarint64(input));
                     if (input.OK()) {
                         has_last_sequence_ = true;
                     } else {
@@ -219,8 +213,8 @@ public class VersionEdit {
                     break;
 
                 case Tag.kCompactPointer:
-                    level = GetLevel(input);
-                    key = GetInternalKey(input);
+                    level = getLevel(input);
+                    key = getInternalKey(input);
                     if (input.OK()) {
                         compact_pointers_.add(new Pair<Integer, InternalKey>(level, key));
                     } else {
@@ -229,8 +223,8 @@ public class VersionEdit {
                     break;
 
                 case Tag.kDeletedFile:
-                    level = GetLevel(input);
-                    number = coding.GetVarint64(input);
+                    level = getLevel(input);
+                    number = coding.getVarint64(input);
                     if (input.OK()) {
                         deleted_files_.add(new Pair<Integer, Long>(level, number));
                     } else {
@@ -239,12 +233,12 @@ public class VersionEdit {
                     break;
 
                 case Tag.kNewFile:
-                    level = GetLevel(input);
+                    level = getLevel(input);
                     f = new FileMetaData();
-                    f.setNumber(coding.GetVarint64(input));
-                    f.setFile_size(coding.GetVarint64(input));
-                    f.setSmallest(GetInternalKey(input));
-                    f.setLargest(GetInternalKey(input));
+                    f.setNumber(coding.getVarint64(input));
+                    f.setFile_size(coding.getVarint64(input));
+                    f.setSmallest(getInternalKey(input));
+                    f.setLargest(getInternalKey(input));
                     if (input.OK()) {
                         new_files_.add(new Pair<Integer, FileMetaData>(level, f));
                     } else {
@@ -270,7 +264,7 @@ public class VersionEdit {
         return result;
     }
 
-    public String DebugString() {
+    public String debugString() {
         StringBuffer r = new StringBuffer();
         r.append("VersionEdit {");
         if (has_comparator_) {
@@ -279,43 +273,42 @@ public class VersionEdit {
         }
         if (has_log_number_) {
             r.append("\n  LogNumber: ");
-            r.append(logging.AppendNumberTo(log_number_));
+            r.append(log_number_);
         }
         if (has_prev_log_number_) {
             r.append("\n  PrevLogNumber: ");
-            r.append(logging.AppendNumberTo(prev_log_number_));
+            r.append(prev_log_number_);
         }
         if (has_next_file_number_) {
             r.append("\n  NextFile: ");
-            r.append(logging.AppendNumberTo(next_file_number_));
+            r.append(next_file_number_);
         }
         if (has_last_sequence_) {
             r.append("\n  LastSeq: ");
-            r.append(logging.AppendNumberTo(last_sequence_.value));
+            r.append(last_sequence_);
         }
         for (int i = 0; i < compact_pointers_.size(); i++) {
             r.append("\n  CompactPointer: ");
 
-            r.append(logging
-                    .AppendNumberTo(compact_pointers_.get(i).getFirst()));
+            r.append(compact_pointers_.get(i).getFirst());
             r.append(" ");
             r.append(compact_pointers_.get(i).getSecond().DebugString());
         }
         java.util.Iterator<Pair<Integer, Long>> itr = deleted_files_.iterator();
         while (itr.hasNext()) {
             Pair<Integer, Long> p = itr.next();
-            r.append("\n  DeleteFile: ");
-            r.append(logging.AppendNumberTo(p.getFirst()));
+            r.append("\n  deleteFile: ");
+            r.append(p.getFirst());
             r.append(" ");
-            r.append(logging.AppendNumberTo(p.getSecond()));
+            r.append(p.getSecond());
         }
 
         for (int i = 0; i < new_files_.size(); i++) {
             FileMetaData f = new_files_.get(i).getSecond();
-            r.append("\n  AddFile: ");
-            r.append(logging.AppendNumberTo(new_files_.get(i).getFirst()));
+            r.append("\n  addFile: ");
+            r.append(new_files_.get(i).getFirst());
             r.append(" ");
-            r.append(logging.AppendNumberTo(f.getNumber()));
+            r.append(f.getNumber());
             r.append(" ");
 
             r.append(f.getFile_size());
@@ -345,8 +338,8 @@ public class VersionEdit {
     Set<Pair<Integer, Long>> deleted_files_;
     List<Pair<Integer, FileMetaData>> new_files_;
 
-    private int GetLevel(ByteCollection input) {
-        int v = coding.GetVarint32(input);
+    private int getLevel(ByteCollection input) {
+        int v = coding.getVarint32(input);
         if (input.OK() && v < config.kNumLevels) {
             return v;
         } else {
@@ -355,8 +348,8 @@ public class VersionEdit {
         }
     }
 
-    private InternalKey GetInternalKey(ByteCollection input) {
-        Slice s = coding.GetLengthPrefixedSlice(input);
+    private InternalKey getInternalKey(ByteCollection input) {
+        Slice s = coding.getLengthPrefixedSlice(input);
         if (s == null)
             return null;
         InternalKey det = new InternalKey();

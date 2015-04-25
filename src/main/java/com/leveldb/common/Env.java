@@ -93,7 +93,7 @@ public abstract class Env {
     // May create the named file if it does not already exist.
     public abstract FileLock LockFile(String fname);
 
-    // Release the lock acquired by a previous successful call to LockFile.
+    // release the lock acquired by a previous successful call to LockFile.
     // REQUIRES: lock was returned by a successful LockFile() call
     // REQUIRES: lock has not already been unlocked.
     public abstract Status UnlockFile(FileLock lock);
@@ -153,7 +153,7 @@ public abstract class Env {
 		 * env.cc WritableFile* file; Status s = env->NewWritableFile(fname,
 		 * &file); if (!s.ok()) { return s; } s = file->Append(data); if
 		 * (s.ok()) { s = file->Close(); } delete file; // Will auto-close if we
-		 * did not close above if (!s.ok()) { env->DeleteFile(fname); } return
+		 * did not close above if (!s.ok()) { env->deleteFile(fname); } return
 		 * s;
 		 */
     }

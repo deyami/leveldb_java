@@ -43,8 +43,8 @@ public class WriteBatch {
     public void Put(Slice key, Slice value) { //
         WriteBatchInternal.SetCount(this, WriteBatchInternal.Count(this) + 1);
         rep_.bytes = util.add(rep_.bytes, util.toBytes(ValueType.kTypeValue),
-                coding.PutLengthPrefixedSlice(key),
-                coding.PutLengthPrefixedSlice(value));
+                coding.putLengthPrefixedSlice(key),
+                coding.putLengthPrefixedSlice(value));
     }
 
     // If the database contains a mapping for "key", erase it. Else do nothing.
@@ -52,10 +52,10 @@ public class WriteBatch {
         WriteBatchInternal.SetCount(this, WriteBatchInternal.Count(this) + 1);
         rep_.bytes = util.add(rep_.bytes,
                 util.toBytes(ValueType.kTypeDeletion),
-                coding.PutLengthPrefixedSlice(key));
+                coding.putLengthPrefixedSlice(key));
     }
 
-    // Clear all updates buffered in this batch.
+    // clear all updates buffered in this batch.
     public void Clear() {
         rep_.bytes = new byte[kHeader];
     }
@@ -93,8 +93,8 @@ public class WriteBatch {
             switch (tag) {
                 case ValueType.kTypeValue:
                     try {
-                        key = coding.GetLengthPrefixedSlice(rep_);
-                        value = coding.GetLengthPrefixedSlice(rep_);
+                        key = coding.getLengthPrefixedSlice(rep_);
+                        value = coding.getLengthPrefixedSlice(rep_);
                         handler.Put(key, value);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -104,7 +104,7 @@ public class WriteBatch {
                     break;
                 case ValueType.kTypeDeletion:
                     try {
-                        key = coding.GetLengthPrefixedSlice(rep_);
+                        key = coding.getLengthPrefixedSlice(rep_);
 
                         handler.Delete(key);
                     } catch (Exception e) {

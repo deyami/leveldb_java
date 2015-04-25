@@ -53,7 +53,7 @@ public class TableCache {
 
         @Override
         public void exec(Object... args) {
-            c.Release(h);
+            c.release(h);
         }
 
     }
@@ -62,11 +62,11 @@ public class TableCache {
         env_ = options.env;
         dbname_ = dbname;
         options_ = options;
-        cache_ = Cache.NewLRUCache(entries);
+        cache_ = Cache.newLRUCache(entries);
     }
 
     public void Destroy() {
-        cache_.Destroy();
+        cache_.destroy();
     }
 
     /*
@@ -80,7 +80,7 @@ public class TableCache {
      *
      * inner Cache
      * Key: filenumber
-     * Value: file & table
+     * value: file & table
      *
      * @return iterator over the table
      */
@@ -92,7 +92,7 @@ public class TableCache {
 
         byte[] buf = util.toBytes(file_number);
         Slice key = new Slice(buf);
-        Cache.Handle handle = cache_.Lookup(key);
+        Cache.Handle handle = cache_.lookup(key);
         if (handle == null) {
             String fname = filename.TableFileName(dbname_, file_number);
             _RandomAccessFile file = null;
@@ -107,21 +107,21 @@ public class TableCache {
                 // We do not cache error results so that if the error is
                 // transient,
                 // or somebody repairs the file, we recover automatically.
-                return Iterator.NewErrorIterator(null);
+                return Iterator.newErrorIterator(null);
             }
 
             TableAndFile tf = new TableAndFile();
             tf.file = file;
             tf.table = table;
             Function DeleteEntry = new DeleteTableAndFile(tf);
-            handle = cache_.Insert(key, tf, 1, DeleteEntry);
+            handle = cache_.insert(key, tf, 1, DeleteEntry);
         }
 
-        Table table = ((TableAndFile) (cache_.Value(handle))).table;
+        Table table = ((TableAndFile) (cache_.value(handle))).table;
         Iterator result = table.NewIterator(options);
 
         Function UnrefEntry = new UnrefEntryCacheAndHandle(cache_, handle);
-        result.RegisterCleanup(UnrefEntry, cache_, handle);
+        result.registerCleanup(UnrefEntry, cache_, handle);
         if (tableptr != null) {
             tableptr[0] = table;
         }
@@ -132,7 +132,7 @@ public class TableCache {
     // Evict any entry for the specified file number
     void Evict(long file_number) {
         byte[] buf = util.toBytes(file_number);
-        cache_.Erase(new Slice(buf));
+        cache_.erase(new Slice(buf));
     }
 
     Env env_;

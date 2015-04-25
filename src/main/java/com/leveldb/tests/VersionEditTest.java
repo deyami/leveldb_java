@@ -15,12 +15,12 @@ public class VersionEditTest extends TestCase {
     // ////////////////////////////
     public static void TestEncodeDecode(VersionEdit edit) {
         byte[] encoded, encoded2;
-        encoded = edit.EncodeTo();
+        encoded = edit.encodeTo();
         VersionEdit parsed = new VersionEdit();
-        Status s = parsed.DecodeFrom(new Slice(encoded));
+        Status s = parsed.decodeFrom(new Slice(encoded));
         System.out.println(s);
         // ASSERT_TRUE(s.ok()) << s.ToString();
-        encoded2 = parsed.EncodeTo();
+        encoded2 = parsed.encodeTo();
         System.out.println(util.compareTo(encoded, encoded2));
         // ASSERT_EQ(encoded, encoded2);
     }
@@ -31,22 +31,22 @@ public class VersionEditTest extends TestCase {
         VersionEdit edit = new VersionEdit();
         for (int i = 0; i < 4; i++) {
             TestEncodeDecode(edit);
-            edit.AddFile(3, kBig + 300 + i, kBig + 400 + i, new InternalKey(
+            edit.addFile(3, kBig + 300 + i, kBig + 400 + i, new InternalKey(
                     new Slice("foo"), new SequenceNumber(kBig + 500 + i),
                     new ValueType(ValueType.kTypeValue)), new InternalKey(
                     new Slice("zoo"), new SequenceNumber(kBig + 600 + i),
                     new ValueType(ValueType.kTypeDeletion)));
-            edit.DeleteFile(4, kBig + 700 + i);
+            edit.deleteFile(4, kBig + 700 + i);
 
-            edit.SetCompactPointer(i, new InternalKey(new Slice("x"),
+            edit.setCompactPointer(i, new InternalKey(new Slice("x"),
                     new SequenceNumber(kBig + 900 + i), new ValueType(
                     ValueType.kTypeValue)));
         }
 
-        edit.SetComparatorName(new Slice("foo"));
-        edit.SetLogNumber(kBig + 100);
-        edit.SetNextFile(kBig + 200);
-        edit.SetLastSequence(new SequenceNumber(kBig + 1000));
+        edit.setComparatorName(new Slice("foo"));
+        edit.setLogNumber(kBig + 100);
+        edit.setNextFile(kBig + 200);
+        edit.setLastSequence(new SequenceNumber(kBig + 1000));
         TestEncodeDecode(edit);
     }
 

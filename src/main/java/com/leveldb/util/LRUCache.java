@@ -73,7 +73,7 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public Handle Insert(Slice key, Object value, int charge, Function deleter) {
+    public Handle insert(Slice key, Object value, int charge, Function deleter) {
         synchronized (this) {
             // LRUHandle* e = reinterpret_cast<LRUHandle*>(
             // malloc(sizeof(LRUHandle)-1 + key.size()));
@@ -109,7 +109,7 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public Handle Lookup(Slice key) {
+    public Handle lookup(Slice key) {
         synchronized (this) {
             LRUHandle dummy = new LRUHandle();
             dummy.next = dummy;
@@ -128,7 +128,7 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public void Release(Handle handle) {
+    public void release(Handle handle) {
         synchronized (this) {
             Unref((LRUHandle) handle);
         }
@@ -136,13 +136,13 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public Object Value(Handle handle) {
+    public Object value(Handle handle) {
         return ((LRUHandle) handle).value;
 
     }
 
     @Override
-    public void Erase(Slice key) {
+    public void erase(Slice key) {
         synchronized (this) {
             LRUHandle dummy = new LRUHandle();
             dummy.next = dummy;
@@ -158,7 +158,7 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public long NewId() {
+    public long newId() {
         synchronized (this) {
             return ++(last_id_);
         }
@@ -213,7 +213,7 @@ public class LRUCache extends Cache {
     }
 
     @Override
-    public void Destroy() {
+    public void destroy() {
         for (LRUHandle e = lru_.next; e != lru_; ) {
             LRUHandle next = e.next;
             if (e.refs != 1) { // Error if caller has an unreleased handle

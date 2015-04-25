@@ -9,7 +9,7 @@ public class coding {
 
     // TODO: performance is not good, may be caused by arraycopy...
 
-    public static byte[] EncodeVarint32(int v) {
+    public static byte[] encodeVarint32(int v) {
         byte[] des = null;
         int B = 128;
         if (v < (1 << 7)) {
@@ -43,29 +43,29 @@ public class coding {
     }
 
     // actually just return the byte[] of Varint
-    public static byte[] PutVarint32(int v) {
-        return EncodeVarint32(v);
+    public static byte[] putVarint32(int v) {
+        return encodeVarint32(v);
     }
 
     // bytes of length: bytes of data
-    public static byte[] PutLengthPrefixedSlice(Slice value) {
-        byte[] sz_ = EncodeVarint32(value.size());
+    public static byte[] putLengthPrefixedSlice(Slice value) {
+        byte[] sz_ = encodeVarint32(value.size());
         byte[] dt_ = value.data();
 
         return util.add(sz_, dt_);
 
     }
 
-    public static byte[] PutLengthPrefixedBytes(byte[] value) {
-        byte[] sz_ = EncodeVarint32(value.length);
+    public static byte[] putLengthPrefixedBytes(byte[] value) {
+        byte[] sz_ = encodeVarint32(value.length);
         byte[] dt_ = value;
 
         return util.add(sz_, dt_);
     }
 
-    // public static Slice GetLengthPrefixedSlice(Slice islice) {
+    // public static Slice getLengthPrefixedSlice(Slice islice) {
     // byte[] vlen_data = islice.data();
-    // Pair<Integer, Integer> v_l = GetVarint32(vlen_data, 0);
+    // Pair<Integer, Integer> v_l = getVarint32(vlen_data, 0);
     // int len = v_l.getFirst().intValue();
     // int ofs = v_l.getSecond().intValue();
     // byte[] data = new byte[len];
@@ -78,9 +78,9 @@ public class coding {
      * get a length-prefixes-Slice begin from the byte @ src.curr_pos
      * side-effect: move curr_pos to the end of the Slice
      */
-    public static Slice GetLengthPrefixedSlice(ByteCollection src) {
+    public static Slice getLengthPrefixedSlice(ByteCollection src) {
         byte[] vlen_data = src.bytes;
-        int len = GetVarint32(src);
+        int len = getVarint32(src);
         if (!src.OK()) {
             return null;
         }
@@ -91,12 +91,12 @@ public class coding {
 
     }
 
-    public static Slice GetLengthPrefixedSlice(byte[] vlen_data) {
-        return GetLengthPrefixedSlice(new ByteCollection(vlen_data, 0));
+    public static Slice getLengthPrefixedSlice(byte[] vlen_data) {
+        return getLengthPrefixedSlice(new ByteCollection(vlen_data, 0));
     }
 
     // [value, length]
-    public static int GetVarint32(ByteCollection src) {
+    public static int getVarint32(ByteCollection src) {
         int value = 0;
         int length = 1;
         int shift = 0;
@@ -121,7 +121,7 @@ public class coding {
     }
 
     // just return the value
-    public static int GetVarint32(byte[] src_, int offset) {
+    public static int getVarint32(byte[] src_, int offset) {
         int value = 0;
         int shift = 0;
 
@@ -147,8 +147,8 @@ public class coding {
                 (1 << 21) + (1 << 14) + (1 << 7) + 23};
         for (int i : va) {
             int v = i;
-            s = EncodeVarint32(v);
-            int j = GetVarint32(new ByteCollection(s, 0));
+            s = encodeVarint32(v);
+            int j = getVarint32(new ByteCollection(s, 0));
             if (i != j) {
                 System.out.println("bad");
             }
@@ -158,8 +158,8 @@ public class coding {
         for (int i = 0; i < 10000; i++) {
             int v = rn.nextInt();
             v = v & ((1 << 31) - 1);
-            s = EncodeVarint32(v);
-            int j = GetVarint32(new ByteCollection(s, 0));
+            s = encodeVarint32(v);
+            int j = getVarint32(new ByteCollection(s, 0));
             if (v != j) {
                 System.out.println("bad: " + v);
             }
@@ -167,7 +167,7 @@ public class coding {
 
     }
 
-    public static byte[] EncodeVarint64(long v) {
+    public static byte[] encodeVarint64(long v) {
         int B = 128;
         byte[] bb = new byte[0];
         while (v >= B) {
@@ -183,11 +183,11 @@ public class coding {
         return bb;
     }
 
-    public static byte[] PutVarint64(long v) {
-        return EncodeVarint64(v);
+    public static byte[] putVarint64(long v) {
+        return encodeVarint64(v);
     }
 
-    public static long GetVarint64(ByteCollection src) {
+    public static long getVarint64(ByteCollection src) {
         long value = 0;
         int length = 1;
         int shift = 0;
@@ -212,7 +212,7 @@ public class coding {
     }
 
     // get the length of is varint coding bytes
-    public static int VarintLength(long v) {
+    public static int varintLength(long v) {
         int len = 1;
         while (v >= 128) {
             v >>= 7;
@@ -227,8 +227,8 @@ public class coding {
         for (int i = 0; i < 10000; i++) {
             long v = rn.nextLong();
             v = (v & ((1 << 63) - 1));
-            s = EncodeVarint64(v);
-            long j = GetVarint64(new ByteCollection(s, 0));
+            s = encodeVarint64(v);
+            long j = getVarint64(new ByteCollection(s, 0));
             if (v != j) {
                 System.out.println("bad: " + v);
             }
@@ -241,8 +241,8 @@ public class coding {
             str += "this is a test of slice";
         }
         Slice s = new Slice(str.getBytes());
-        Slice r = GetLengthPrefixedSlice(new ByteCollection(
-                PutLengthPrefixedSlice(s), 0));
+        Slice r = getLengthPrefixedSlice(new ByteCollection(
+                putLengthPrefixedSlice(s), 0));
         if (s.compareTo(r) != 0) {
             System.out.println("bad: " + s.toString().length() + "\t"
                     + r.toString().length());
@@ -253,16 +253,16 @@ public class coding {
         int iv = 1234;
         long iL = 10023456l;
         String is = "this is a string";
-        byte[] en = util.addN(PutVarint32(iv), PutVarint64(iL),
-                PutLengthPrefixedSlice(new Slice(is)));
+        byte[] en = util.addN(putVarint32(iv), putVarint64(iL),
+                putLengthPrefixedSlice(new Slice(is)));
         int pos = 0;
 
         ByteCollection bc = new ByteCollection(en, 0);
-        int ov = GetVarint32(bc);
+        int ov = getVarint32(bc);
 
-        long oL = GetVarint64(bc);
+        long oL = getVarint64(bc);
 
-        Slice os = GetLengthPrefixedSlice(bc);
+        Slice os = getLengthPrefixedSlice(bc);
 
         System.out.println(ov + " " + oL + " " + os);
     }
@@ -273,8 +273,8 @@ public class coding {
         for (int i = 0; i < 10; i++)
             test_combined();
         int i = 200000;
-        byte b[] = PutVarint32(i);
-        int i_ = GetVarint32(new byte[]{-64, -102, 12}, 0);
+        byte b[] = putVarint32(i);
+        int i_ = getVarint32(new byte[]{-64, -102, 12}, 0);
         System.out.println(i_);
 //		byte b_ = -48;
 //		int bi = b_&0xff;

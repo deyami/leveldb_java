@@ -56,7 +56,7 @@ public class Compaction {
     void AddInputDeletions(VersionEdit edit) {
         for (int which = 0; which < 2; which++) {
             for (int i = 0; i < inputs_.get(which).size(); i++) {
-                edit.DeleteFile(level_ + which,
+                edit.deleteFile(level_ + which,
                         inputs_.get(which).get(i).number);
             }
         }
@@ -111,7 +111,7 @@ public class Compaction {
         }
     }
 
-    // Release the input version for the compaction, once the compaction
+    // release the input version for the compaction, once the compaction
     // is successful.
     void ReleaseInputs() {
         if (input_version_ != null) {

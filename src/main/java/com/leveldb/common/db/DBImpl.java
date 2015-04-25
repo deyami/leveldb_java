@@ -19,7 +19,7 @@ import com.leveldb.common.version.VersionEdit;
 import com.leveldb.common.version.VersionSet;
 import com.leveldb.util.SequenceNumber;
 import com.leveldb.util.ValueType;
-import com.leveldb.util.logging;
+import com.leveldb.util.Logging;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -198,7 +198,7 @@ public class DBImpl extends DB {
             // }
         }
         if (result.block_cache == null) {
-            result.block_cache = Cache.NewLRUCache(8 << 20);
+            result.block_cache = Cache.newLRUCache(8 << 20);
         }
         return result;
     }
@@ -499,7 +499,7 @@ public class DBImpl extends DB {
         mutex_.unlock();
         if (result.size() == 0) {
             st.Status_(Status.NotFound(
-                    new Slice("Value of key '" + key.toString()
+                    new Slice("value of key '" + key.toString()
                             + "' is not found."), null));
         }
         return result;
@@ -652,7 +652,7 @@ public class DBImpl extends DB {
         int level = compact.compaction.level();
         for (int i = 0; i < compact.outputs.size(); i++) {
             CompactionState.Output out = compact.outputs.get(i);
-            compact.compaction.edit().AddFile(level + 1, out.number,
+            compact.compaction.edit().addFile(level + 1, out.number,
                     out.file_size, out.smallest, out.largest);
         }
         return versions_.LogAndApply(compact.compaction.edit(), mutex_);
@@ -704,17 +704,17 @@ public class DBImpl extends DB {
             compact.smallest_snapshot = snapshots_.oldest().number_;
         }
 
-        // Release mutex while we're actually doing the compaction work
+        // release mutex while we're actually doing the compaction work
         mutex_.unlock();
 
         Iterator input = versions_.MakeInputIterator(compact.compaction);
-        input.SeekToFirst();
+        input.seekToFirst();
         Status status = Status.OK();
         ParsedInternalKey ikey;
         String current_user_key = "";
         boolean has_current_user_key = false;
         long last_sequence_for_key = SequenceNumber.kMaxSequenceNumber;
-        for (; input.Valid() && !shutting_down_.get(); ) {
+        for (; input.valid() && !shutting_down_.get(); ) {
             // Prioritize immutable compaction work
             if (has_imm_.NoBarrier_Load() != null) {
                 long imm_start = env_.NowMicros();
@@ -811,7 +811,7 @@ public class DBImpl extends DB {
                 }
             }
 
-            input.Next();
+            input.next();
         }
 
         if (status.ok() && shutting_down_.get()) {
@@ -885,7 +885,7 @@ public class DBImpl extends DB {
                 level = base.PickLevelForMemTableOutput(min_user_key,
                         max_user_key);
             }
-            edit.AddFile(level, meta.getNumber(), meta.getFile_size(),
+            edit.addFile(level, meta.getNumber(), meta.getFile_size(),
                     meta.getSmallest(), meta.getLargest());
         }
 
@@ -914,8 +914,8 @@ public class DBImpl extends DB {
 
         // Replace immutable memtable with the generated Table
         if (s.ok()) {
-            edit.SetPrevLogNumber(0);
-            edit.SetLogNumber(logfile_number_); // Earlier logs no longer needed
+            edit.setPrevLogNumber(0);
+            edit.setLogNumber(logfile_number_); // Earlier logs no longer needed
             s = versions_.LogAndApply(edit, mutex_); // TODO
         }
 
@@ -988,8 +988,8 @@ public class DBImpl extends DB {
             // Move file to next level
             assert (c.num_input_files(0) == 1);
             FileMetaData f = c.input(0, 0);
-            c.edit().DeleteFile(c.level(), f.getNumber());
-            c.edit().AddFile(c.level() + 1, f.getNumber(), f.getFile_size(),
+            c.edit().deleteFile(c.level(), f.getNumber());
+            c.edit().addFile(c.level() + 1, f.getNumber(), f.getFile_size(),
                     f.getSmallest(), f.getLargest());
             status = versions_.LogAndApply(c.edit(), mutex_);
             VersionSet.LevelSummaryStorage tmp = new VersionSet.LevelSummaryStorage();
@@ -1076,7 +1076,7 @@ public class DBImpl extends DB {
 
         if (in.starts_with(new Slice("num-files-at-level"))) {
             in.remove_prefix("num-files-at-level".length());
-            long level = logging.ConsumeDecimalNumber(in.toString());
+            long level = Logging.consumeDecimalNumber(in.toString());
 
             // in.empty();
             if (level >= config.kNumLevels) {
@@ -1287,28 +1287,28 @@ public class DBImpl extends DB {
         }
         // if (false) {
         // Iterator i1 = mem_.NewIterator();
-        // i1.SeekToFirst();
-        // while (i1.Valid()) {
+        // i1.seekToFirst();
+        // while (i1.valid()) {
         // System.out.println("In Mem\t" + i1.key() + " -> " + i1.value());
-        // i1.Next();
+        // i1.next();
         //
         // }
         //
         // if (imm_ != null) {
         // Iterator i2 = imm_.NewIterator();
-        // i2.SeekToFirst();
-        // while (i2.Valid()) {
+        // i2.seekToFirst();
+        // while (i2.valid()) {
         // System.out.println("In imm\t" + i2.key() + " -> "
         // + i2.value());
-        // i2.Next();
+        // i2.next();
         // }
         // }
         //
         // // Iterator i3 = list.get(2);
-        // // i3.SeekToFirst();
-        // // while(i3.Valid()){
+        // // i3.seekToFirst();
+        // // while(i3.valid()){
         // // System.out.println("In file\t" + i3.key() + " -> " + i3.value());
-        // // i3.Next();
+        // // i3.next();
         // // }
         // }
         Iterator internal_iter = MergingIterator.NewMergingIterator(
@@ -1320,7 +1320,7 @@ public class DBImpl extends DB {
         cleanup.imm = imm_;
         cleanup.version = versions_.current();
         internal_iter
-                .RegisterCleanup(new CleanupIteratorState(), cleanup, null);
+                .registerCleanup(new CleanupIteratorState(), cleanup, null);
 
         mutex_.unlock();
         return internal_iter;
@@ -1347,10 +1347,10 @@ public class DBImpl extends DB {
 
     private Status NewDB() {
         VersionEdit new_db = new VersionEdit();
-        new_db.SetComparatorName(new Slice(user_comparator().Name()));
-        new_db.SetLogNumber(0);
-        new_db.SetNextFile(2);
-        new_db.SetLastSequence(new SequenceNumber(0));
+        new_db.setComparatorName(new Slice(user_comparator().Name()));
+        new_db.setLogNumber(0);
+        new_db.setNextFile(2);
+        new_db.setLastSequence(new SequenceNumber(0));
 
         _WritableFile file = null;
         String manifest = null;
@@ -1366,7 +1366,7 @@ public class DBImpl extends DB {
         {
             com.leveldb.common.log.Writer log = new com.leveldb.common.log.Writer(
                     file);
-            byte[] record = new_db.EncodeTo();
+            byte[] record = new_db.encodeTo();
             s = log.AddRecord(new Slice(record));
             if (s.ok()) {
                 s = file.Close();

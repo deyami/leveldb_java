@@ -20,7 +20,7 @@ public class Table {
                 try {
                     Cache cache = (Cache) (args[0]);
                     Cache.Handle handle = (Cache.Handle) (args[1]);
-                    cache.Release(handle);
+                    cache.release(handle);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     e.printStackTrace();
                 }
@@ -64,10 +64,10 @@ public class Table {
                     // offset}
                     Slice key = new Slice(cache_key_buffer);
                     // look up the key in the cache
-                    cache_handle = block_cache.Lookup(key);
+                    cache_handle = block_cache.lookup(key);
                     // in the cache, just return
                     if (cache_handle != null) {
-                        block = (Block) (block_cache.Value(cache_handle));
+                        block = (Block) (block_cache.value(cache_handle));
                     }
                     // not in the cache, read the block and insert to the cache
                     else {
@@ -78,7 +78,7 @@ public class Table {
                             may_cache = Block.ReadBlock(table.rep_.file,
                                     options, handle, block);
                             if (may_cache && options.fill_cache) {
-                                cache_handle = block_cache.Insert(key, block,
+                                cache_handle = block_cache.insert(key, block,
                                         block.size(), null); // DeleteCachedBlock
                             }
                         } catch (Exception e) {
@@ -103,15 +103,15 @@ public class Table {
                 // !!! return a iterator of Block
                 iter = block.NewIterator(table.rep_.options.comparator);
                 if (cache_handle == null) {
-                    iter.RegisterCleanup(null, block, null); // no need
+                    iter.registerCleanup(null, block, null); // no need
                 }
                 // release the handle from the cache
                 else {
-                    iter.RegisterCleanup(new ReleaseBlockFunction(),
+                    iter.registerCleanup(new ReleaseBlockFunction(),
                             block_cache, cache_handle);
                 }
             } else {
-                iter = Iterator.NewErrorIterator(Status.IOError(new Slice(
+                iter = Iterator.newErrorIterator(Status.IOError(new Slice(
                         "block null"), null));
             }
             return iter;
@@ -184,7 +184,7 @@ public class Table {
             rep.metaindex_handle = footer.metaindex_handle();
             rep.index_block = index_block;
             rep.cache_id = (options.block_cache != null ? options.block_cache
-                    .NewId() : 0);
+                    .newId() : 0);
             table = new Table(rep);
         } else {
             if (index_block != null)
@@ -195,7 +195,7 @@ public class Table {
 
     /**
      * Returns a new iterator over the table contents. The result of
-     * NewIterator() is initially invalid (caller must call one of the Seek
+     * NewIterator() is initially invalid (caller must call one of the seek
      * methods on the iterator before using it).
      * <p/>
      * outer iterator is index_block.iterator BlockFunction here will read
@@ -217,9 +217,9 @@ public class Table {
         // index_iter is a coarse iterator, BlockHandler {offset, size}
         Iterator index_iter = rep_.index_block
                 .NewIterator(rep_.options.comparator);
-        index_iter.Seek(key);
+        index_iter.seek(key);
         long result;
-        if (index_iter.Valid()) {
+        if (index_iter.valid()) {
             BlockHandle handle = new BlockHandle();
             ByteCollection input = new ByteCollection(
                     index_iter.value().data(), 0);

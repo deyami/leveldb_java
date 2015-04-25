@@ -45,7 +45,7 @@ class DBIter extends Iterator {
         saved_value_ = new ByteVector();
     }
 
-    public boolean Valid() {
+    public boolean valid() {
         return valid_;
     }
 
@@ -94,7 +94,7 @@ class DBIter extends Iterator {
         }
     }
 
-    public void Next() {
+    public void next() {
         assert (valid_);
 
         if (direction_ == Direction.kReverse) { // Switch directions?
@@ -102,12 +102,12 @@ class DBIter extends Iterator {
             // iter_ is pointing just before the entries for this->key(),
             // so advance into the range of entries for this->key() and then
             // use the normal skipping code below.
-            if (!iter_.Valid()) {
-                iter_.SeekToFirst();
+            if (!iter_.valid()) {
+                iter_.seekToFirst();
             } else {
-                iter_.Next();
+                iter_.next();
             }
-            if (!iter_.Valid()) {
+            if (!iter_.valid()) {
                 valid_ = false;
                 saved_key_.clear();
                 return;
@@ -122,7 +122,7 @@ class DBIter extends Iterator {
 
     void FindNextUserEntry(boolean skipping, ByteVector skip) {
         // Loop until we hit an acceptable entry to yield
-        assert (iter_.Valid());
+        assert (iter_.valid());
         assert (direction_ == Direction.kForward);
         do {
             ParsedInternalKey ikey = ParseKey();
@@ -149,23 +149,23 @@ class DBIter extends Iterator {
                         break;
                 }
             }
-            iter_.Next();
-        } while (iter_.Valid());
+            iter_.next();
+        } while (iter_.valid());
         saved_key_.clear();
         valid_ = false;
     }
 
-    public void Prev() {
+    public void prev() {
         assert (valid_);
 
         if (direction_ == Direction.kForward) { // Switch directions?
             // iter_ is pointing at the current entry. Scan backwards until
             // the key changes so we can use the normal reverse scanning code.
-            assert (iter_.Valid()); // Otherwise valid_ would have been false
+            assert (iter_.valid()); // Otherwise valid_ would have been false
             SaveKey(InternalKey.ExtractUserKey(iter_.key()), saved_key_);
             while (true) {
-                iter_.Prev();
-                if (!iter_.Valid()) {
+                iter_.prev();
+                if (!iter_.valid()) {
                     valid_ = false;
                     saved_key_.clear();
                     ClearSavedValue();
@@ -187,7 +187,7 @@ class DBIter extends Iterator {
         assert (direction_ == Direction.kReverse);
 
         ValueType value_type = ValueType.TypeDeletion;
-        if (iter_.Valid()) {
+        if (iter_.valid()) {
             do {
                 ParsedInternalKey ikey = ParseKey();
                 if (ikey.sequence.value <= sequence_.value) {
@@ -213,8 +213,8 @@ class DBIter extends Iterator {
                         saved_value_.set(raw_value.data());
                     }
                 }
-                iter_.Prev();
-            } while (iter_.Valid());
+                iter_.prev();
+            } while (iter_.valid());
         }
 
         if (value_type.value == ValueType.kTypeDeletion) {
@@ -228,7 +228,7 @@ class DBIter extends Iterator {
         }
     }
 
-    public void Seek(Slice target) {
+    public void seek(Slice target) {
         direction_ = Direction.kForward;
         ClearSavedValue();
         saved_key_.clear();
@@ -236,29 +236,29 @@ class DBIter extends Iterator {
         saved_key_.set(InternalKey.AppendInternalKey(saved_key_.getData(),
                 new ParsedInternalKey(target, sequence_,
                         ValueType.ValueTypeForSeek)));
-        iter_.Seek(new Slice(saved_key_.getRawRef(), 0, saved_key_.getSize()));
-        if (iter_.Valid()) {
+        iter_.seek(new Slice(saved_key_.getRawRef(), 0, saved_key_.getSize()));
+        if (iter_.valid()) {
             FindNextUserEntry(false, saved_key_ /* temporary storage */);
         } else {
             valid_ = false;
         }
     }
 
-    public void SeekToFirst() {
+    public void seekToFirst() {
         direction_ = Direction.kForward;
         ClearSavedValue();
-        iter_.SeekToFirst();
-        if (iter_.Valid()) {
+        iter_.seekToFirst();
+        if (iter_.valid()) {
             FindNextUserEntry(false, saved_key_ /* temporary storage */);
         } else {
             valid_ = false;
         }
     }
 
-    public void SeekToLast() {
+    public void seekToLast() {
         direction_ = Direction.kReverse;
         ClearSavedValue();
-        iter_.SeekToLast();
+        iter_.seekToLast();
         FindPrevUserEntry();
     }
 

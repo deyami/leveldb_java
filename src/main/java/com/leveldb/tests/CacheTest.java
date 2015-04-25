@@ -43,23 +43,23 @@ public class CacheTest extends TestCase {
     static Cache cache_;
 
     public CacheTest() {
-        cache_ = LRUCache.NewLRUCache(kCacheSize);
+        cache_ = LRUCache.newLRUCache(kCacheSize);
         current_ = this;
         deleted_keys_ = new ArrayList<Integer>();
         deleted_values_ = new ArrayList<Integer>();
     }
 
     static int Lookup(Slice key) {
-        Cache.Handle handle = cache_.Lookup(key);
-        int r = (handle == null) ? -1 : (cache_.Value(handle)).hashCode();
+        Cache.Handle handle = cache_.lookup(key);
+        int r = (handle == null) ? -1 : (cache_.value(handle)).hashCode();
         if (handle != null) {
-            cache_.Release(handle);
+            cache_.release(handle);
         }
         return r;
     }
 
     static void Insert(Slice key, int value, int charge) {
-        cache_.Release(cache_.Insert(key, (value), charge, deleter));// #ref is
+        cache_.release(cache_.insert(key, (value), charge, deleter));// #ref is
         // 2, so
         // need
         // to
@@ -69,7 +69,7 @@ public class CacheTest extends TestCase {
     }
 
     static void Erase(Slice key) {
-        cache_.Erase(key);
+        cache_.erase(key);
     }
 
     public void test_insert() {
@@ -120,16 +120,16 @@ public class CacheTest extends TestCase {
 
     public void test_entries_pinned() {
         Insert(new Slice("100".getBytes()), 101, 1);
-        Cache.Handle h1 = cache_.Lookup(new Slice("100")); // ref is increased
+        Cache.Handle h1 = cache_.lookup(new Slice("100")); // ref is increased
         // by 1, to 2
-        _assert(101 == (Integer) (cache_.Value(h1)));
+        _assert(101 == (Integer) (cache_.value(h1)));
 
         Insert(new Slice("100".getBytes()), 102, 1); // old ref reduce to 1
-        Cache.Handle h2 = cache_.Lookup(new Slice("100")); // ref from 1 to 2
-        _assert(102 == (Integer) (cache_.Value(h2)));
+        Cache.Handle h2 = cache_.lookup(new Slice("100")); // ref from 1 to 2
+        _assert(102 == (Integer) (cache_.value(h2)));
         _assert(0 == deleted_keys_.size());
 
-        cache_.Release(h1); // old ref is 0, deleted
+        cache_.release(h1); // old ref is 0, deleted
         _assert(1 == deleted_keys_.size());
         _assert(JenkinsHash.hash("100".getBytes()) == deleted_keys_.get(0));
         _assert(101 == deleted_values_.get(0));
@@ -138,7 +138,7 @@ public class CacheTest extends TestCase {
         _assert(-1 == Lookup(new Slice("100")));
         _assert(1 == deleted_keys_.size());
 
-        cache_.Release(h2); // ref from 1 to 0, deleted
+        cache_.release(h2); // ref from 1 to 0, deleted
         _assert(2 == deleted_keys_.size());
         _assert(JenkinsHash.hash("100".getBytes()) == deleted_keys_.get(1));
         _assert(102 == deleted_values_.get(1));
@@ -173,8 +173,8 @@ public class CacheTest extends TestCase {
     }
 
     public void test_new_id() {
-        long a = cache_.NewId();
-        long b = cache_.NewId();
+        long a = cache_.newId();
+        long b = cache_.newId();
         _assert(a != b);
     }
 

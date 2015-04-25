@@ -317,15 +317,15 @@ public class VersionSet {
             assert (edit.log_number_ >= log_number_);
             assert (edit.log_number_ < next_file_number_);
         } else {
-            edit.SetLogNumber(log_number_);
+            edit.setLogNumber(log_number_);
         }
 
         if (!edit.has_prev_log_number_) {
-            edit.SetPrevLogNumber(prev_log_number_);
+            edit.setPrevLogNumber(prev_log_number_);
         }
 
-        edit.SetNextFile(next_file_number_);
-        edit.SetLastSequence(last_sequence_);
+        edit.setNextFile(next_file_number_);
+        edit.setLastSequence(last_sequence_);
 
         Version v = new Version(this);
         {
@@ -349,7 +349,7 @@ public class VersionSet {
             assert (descriptor_file_ == null);
             new_manifest_file = filename.DescriptorFileName(dbname_,
                     manifest_file_number_);
-            edit.SetNextFile(next_file_number_);
+            edit.setNextFile(next_file_number_);
             descriptor_file_ = env_.NewWritableFile(new_manifest_file);
             descriptor_log_ = new Writer(descriptor_file_);
             s = WriteSnapshot(descriptor_log_);
@@ -361,7 +361,7 @@ public class VersionSet {
 
             // Write new record to MANIFEST log
             if (s.ok()) {
-                byte[] record = edit.EncodeTo();
+                byte[] record = edit.encodeTo();
                 s = descriptor_log_.AddRecord(new Slice(record));
                 if (s.ok()) {
                     s = descriptor_file_.Sync();
@@ -443,7 +443,7 @@ public class VersionSet {
 
             while (reader.ReadRecord(record, scratch) && s.ok()) {
                 VersionEdit edit = new VersionEdit();
-                s = edit.DecodeFrom(record);
+                s = edit.decodeFrom(record);
                 if (s.ok()) {
                     if (edit.has_comparator_
                             && edit.comparator_.compareTo(icmp_
@@ -1015,7 +1015,7 @@ public class VersionSet {
         // to be applied so that if the compaction fails, we will try a
         // different key range next time.
         compact_pointer_[level] = largest.Encode().toString();
-        c.edit_.SetCompactPointer(level, largest);
+        c.edit_.setCompactPointer(level, largest);
     }
 
     // Save current contents to *log
@@ -1026,14 +1026,14 @@ public class VersionSet {
 
         // Save metadata
         VersionEdit edit = new VersionEdit();
-        edit.SetComparatorName(new Slice(icmp_.user_comparator().Name()));
+        edit.setComparatorName(new Slice(icmp_.user_comparator().Name()));
 
         // Save compaction pointers
         for (int level = 0; level < config.kNumLevels; level++) {
             if (!compact_pointer_[level].isEmpty()) {
                 InternalKey key = new InternalKey();
                 key.DecodeFrom(new Slice(compact_pointer_[level]));
-                edit.SetCompactPointer(level, key);
+                edit.setCompactPointer(level, key);
             }
         }
 
@@ -1042,12 +1042,12 @@ public class VersionSet {
             List<FileMetaData> files = current_.files_.get(level);
             for (int i = 0; i < files.size(); i++) {
                 FileMetaData f = files.get(i);
-                edit.AddFile(level, f.number, f.file_size, f.smallest,
+                edit.addFile(level, f.number, f.file_size, f.smallest,
                         f.largest);
             }
         }
 
-        byte[] record = edit.EncodeTo();
+        byte[] record = edit.encodeTo();
         return log.AddRecord(new Slice(record));
     }
 

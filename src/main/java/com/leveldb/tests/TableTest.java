@@ -378,37 +378,37 @@ public class TableTest extends TestCase {
             iter_ = iter;
         }
 
-        public boolean Valid() {
-            return iter_.Valid();
+        public boolean valid() {
+            return iter_.valid();
         }
 
-        public void Seek(Slice target) {
+        public void seek(Slice target) {
             ParsedInternalKey ikey = new ParsedInternalKey(target,
                     SequenceNumber.MaxSequenceNumber, ValueType.TypeValue);
             byte[] encoded = new byte[0];
             encoded = InternalKey.AppendInternalKey(encoded, ikey);
-            iter_.Seek(new Slice(encoded));
+            iter_.seek(new Slice(encoded));
         }
 
-        public void SeekToFirst() {
-            iter_.SeekToFirst();
+        public void seekToFirst() {
+            iter_.seekToFirst();
         }
 
-        public void SeekToLast() {
-            iter_.SeekToLast();
+        public void seekToLast() {
+            iter_.seekToLast();
         }
 
-        public void Next() {
-            iter_.Next();
+        public void next() {
+            iter_.next();
         }
 
-        public void Prev() {
-            iter_.Prev();
+        public void prev() {
+            iter_.prev();
         }
 
         @Override
         public Slice key() {
-            assert (Valid());
+            assert (valid());
             ParsedInternalKey key = null;
             key = InternalKey.ParseInternalKey_(iter_.key());
             if (key == null) {
@@ -638,8 +638,8 @@ public class TableTest extends TestCase {
                          final TreeMap<byte[], byte[]> data) {
 
         Iterator iter = constructor_.NewIterator();
-        ASSERT_TRUE(!iter.Valid(), "iter not valid");
-        iter.SeekToFirst();
+        ASSERT_TRUE(!iter.valid(), "iter not valid");
+        iter.seekToFirst();
 
         String orgstr[] = new String[data.size()];
         List<String> resstr = new ArrayList<String>(data.size());
@@ -651,11 +651,11 @@ public class TableTest extends TestCase {
 
         }
         i = 0;
-        while (iter.Valid()) {
+        while (iter.valid()) {
             String str2 = ToString(iter);
             resstr.add(str2);
             i++;
-            iter.Next();
+            iter.next();
         }
         // compare the String arrays
         ASSERT_TRUE(orgstr.length == resstr.size(), "NOT EQUAL");
@@ -673,7 +673,7 @@ public class TableTest extends TestCase {
                     s + " [ !Equal ] " + resstr.get(resstr.indexOf(s)));
         }
 
-        ASSERT_TRUE(!iter.Valid(), "iter not valid");
+        ASSERT_TRUE(!iter.valid(), "iter not valid");
         iter = null;
     }
 
@@ -683,8 +683,8 @@ public class TableTest extends TestCase {
 
     void TestBackwardScan(List<byte[]> keys, TreeMap<byte[], byte[]> data) {
         Iterator iter = constructor_.NewIterator();
-        ASSERT_TRUE(!iter.Valid(), "iter not valid");
-        iter.SeekToLast();
+        ASSERT_TRUE(!iter.valid(), "iter not valid");
+        iter.seekToLast();
         // reverse keys of the map
         Set<byte[]> orgset = data.keySet();
         List<byte[]> reversedset2list = new ArrayList<byte[]>();
@@ -701,10 +701,10 @@ public class TableTest extends TestCase {
             String str2 = ToString(iter);
             ASSERT_TRUE(str1.compareTo(str2) == 0, str1 + " [ !Equal ] "
                     + str2);
-            iter.Prev();
+            iter.prev();
         }
 
-        ASSERT_TRUE(!iter.Valid(), "iter not valid");
+        ASSERT_TRUE(!iter.valid(), "iter not valid");
     }
 
     void TestRandomAccess(Random rnd, List<byte[]> keys,
@@ -712,7 +712,7 @@ public class TableTest extends TestCase {
 
         boolean kVerbose = false;
         Iterator iter = constructor_.NewIterator();
-        ASSERT_TRUE(!iter.Valid(), "iter not valid");
+        ASSERT_TRUE(!iter.valid(), "iter not valid");
         // KVMap::const_iterator model_iter = data.begin();
         Set<byte[]> keyset = data.keySet();
         byte[][] keyArray = new byte[keyset.size()][];
@@ -723,7 +723,7 @@ public class TableTest extends TestCase {
         }
 
         int model_iter = 0;
-        iter.SeekToFirst();
+        iter.seekToFirst();
 
         if (kVerbose) {
             System.out.println("---");
@@ -732,14 +732,14 @@ public class TableTest extends TestCase {
         TreeMap<byte[], byte[]> _data = new TreeMap<byte[], byte[]>(
                 data.comparator());
 
-        // iter.SeekToFirst();
+        // iter.seekToFirst();
 
         // deep copy the map for test
         for (byte[] k_ : data.keySet()) {
             _data.put(util.deepCopy(k_), util.deepCopy(data.get(k_)));
             // System.out.println(ToString(iter) + "" +
             // util.toString(k_)+"->"+util.toString(data.get(k_)));
-            // iter.Next();
+            // iter.next();
         }
 
         // _degug
@@ -748,17 +748,17 @@ public class TableTest extends TestCase {
             int toss = Math.abs(rnd.nextInt()) % 5;
             switch (toss) {
                 case 0: {
-                    if (iter.Valid()) {
+                    if (iter.valid()) {
                         if (kVerbose) {
-                            System.out.println("Next");
+                            System.out.println("next");
                         }
-                        iter.Next();
+                        iter.next();
                         ++model_iter;
                         // wlu:
                         if (model_iter == keyArray.length) {
-                            ASSERT_TRUE(!iter.Valid(),
+                            ASSERT_TRUE(!iter.valid(),
                                     "iter should be invalid when array @end");
-                            iter.SeekToFirst();
+                            iter.seekToFirst();
                             model_iter = 0;
                         }
                         byte[] str = keyArray[model_iter];
@@ -773,9 +773,9 @@ public class TableTest extends TestCase {
 
                 case 1: {
                     if (kVerbose) {
-                        System.out.println("SeekToFirst");
+                        System.out.println("seekToFirst");
                     }
-                    iter.SeekToFirst();
+                    iter.seekToFirst();
                     model_iter = 0;
 
                     String str = "";
@@ -815,7 +815,7 @@ public class TableTest extends TestCase {
                                 + util.toString(key) + ")" + "'");
                     }
 
-                    iter.Seek(new Slice(kv.getKey()));
+                    iter.seek(new Slice(kv.getKey()));
                     for (i_ = 0; i_ < keyArray.length; i_++) {
                         if (util.compareTo(keyArray[i_], kv.getKey()) == 0) {
                             model_iter = i_;
@@ -834,18 +834,18 @@ public class TableTest extends TestCase {
                 }
 
                 case 3: {
-                    if (iter.Valid()) {
+                    if (iter.valid()) {
                         if (kVerbose) {
-                            System.out.println("Prev");
+                            System.out.println("prev");
                         }
-                        iter.Prev();
+                        iter.prev();
                         if (model_iter == 0) {
-                            ASSERT_TRUE(!iter.Valid(),
+                            ASSERT_TRUE(!iter.valid(),
                                     "iter should be invalid when array @begin");
                             model_iter = keyArray.length - 1; // Wrap around to
                             // invalid value
                             //
-                            iter.SeekToLast();
+                            iter.seekToLast();
                         } else {
                             --model_iter;
                         }
@@ -865,9 +865,9 @@ public class TableTest extends TestCase {
 
                 case 4: {
                     if (kVerbose) {
-                        System.out.println("SeekToLast");
+                        System.out.println("seekToLast");
                     }
-                    iter.SeekToLast();
+                    iter.seekToLast();
                     model_iter = keyArray.length - 1;
 
                     Entry<byte[], byte[]> kv = _data.lastEntry();
@@ -888,7 +888,7 @@ public class TableTest extends TestCase {
     }
 
     String ToString(Iterator it) {
-        if (!it.Valid()) {
+        if (!it.valid()) {
             return "END";
         } else {
             return "'" + it.key().toString() + "->" + it.value().toString()
@@ -1089,10 +1089,10 @@ public class TableTest extends TestCase {
                 "insert to batch wrong");
 
         Iterator iter = memtable.NewIterator();
-        iter.SeekToFirst();
-        while (iter.Valid()) {
+        iter.seekToFirst();
+        while (iter.valid()) {
             System.err.println("key: '" + iter.key() + "' -> " + iter.value());
-            iter.Next();
+            iter.next();
         }
 
         memtable.Unref();
@@ -1101,7 +1101,7 @@ public class TableTest extends TestCase {
     static boolean Between(long val, long low, long high) {
         boolean result = (val >= low) && (val <= high);
         if (result) {
-            System.err.println("Value " + val + " is  in range [" + low + ", "
+            System.err.println("value " + val + " is  in range [" + low + ", "
                     + high + "]");
         }
         return result;

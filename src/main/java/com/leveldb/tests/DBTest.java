@@ -206,7 +206,7 @@ public class DBTest extends TestCase {
 
     String IterStatus(Iterator iter) {
         String result;
-        if (iter.Valid()) {
+        if (iter.valid()) {
             result = iter.key().toString() + "->" + iter.value().toString();
         } else {
             result = "(invalid)";
@@ -220,7 +220,7 @@ public class DBTest extends TestCase {
         List<String> forward = new ArrayList<String>();
         String result = "";
         Iterator iter = db_.NewIterator(new ReadOptions());
-        for (iter.SeekToFirst(); iter.Valid(); iter.Next()) {
+        for (iter.seekToFirst(); iter.valid(); iter.next()) {
             String s = IterStatus(iter);
             result += ('(');
             result += (s);
@@ -230,7 +230,7 @@ public class DBTest extends TestCase {
 
         // Check reverse iteration results are the reverse of forward results
         int matched = 0;
-        for (iter.SeekToLast(); iter.Valid(); iter.Prev()) {
+        for (iter.seekToLast(); iter.valid(); iter.prev()) {
             assertTrue(matched < forward.size());
             assertEquals(IterStatus(iter),
                     forward.get(forward.size() - matched - 1));
@@ -246,14 +246,14 @@ public class DBTest extends TestCase {
         Iterator iter = dbfull().TEST_NewInternalIterator();
         InternalKey target = new InternalKey(user_key,
                 SequenceNumber.MaxSequenceNumber, ValueType.TypeValue);
-        iter.Seek(target.Encode());
+        iter.seek(target.Encode());
         String result;
         if (!iter.status().ok()) {
             result = iter.status().toString();
         } else {
             result = "[ ";
             boolean first = true;
-            while (iter.Valid()) {
+            while (iter.valid()) {
                 ParsedInternalKey ikey = InternalKey.ParseInternalKey_(iter
                         .key());
                 if (ikey == null) {
@@ -276,7 +276,7 @@ public class DBTest extends TestCase {
                             break;
                     }
                 }
-                iter.Next();
+                iter.next();
             }
             if (!first) {
                 result += " ";
@@ -434,7 +434,7 @@ public class DBTest extends TestCase {
         Put("k1", TableTest.string(100000, 'x')); // Fill memtable
         Put("k2", TableTest.string(100000, 'y')); // Trigger compaction
         ASSERT_EQ("v1", Get("foo"));
-        env_.delay_sstable_sync_.Release_Store(null); // Release sync calls
+        env_.delay_sstable_sync_.Release_Store(null); // release sync calls
         assertTrue(Close());
     }
 
@@ -545,13 +545,13 @@ public class DBTest extends TestCase {
     public void testIterEmpty() {
         Iterator iter = db_.NewIterator(new ReadOptions());
 
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.SeekToLast();
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.Seek(new Slice("foo"));
+        iter.seek(new Slice("foo"));
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
         iter = null;
@@ -561,35 +561,35 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("a", "va"));
         Iterator iter = db_.NewIterator(new ReadOptions());
 
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
-        ASSERT_EQ(IterStatus(iter), "(invalid)");
-
-        iter.SeekToLast();
-        ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
-        ASSERT_EQ(IterStatus(iter), "(invalid)");
-        iter.SeekToLast();
-        ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.Seek(new Slice(""));
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
+        ASSERT_EQ(IterStatus(iter), "(invalid)");
+        iter.seekToLast();
+        ASSERT_EQ(IterStatus(iter), "a->va");
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.Seek(new Slice("a"));
+        iter.seek(new Slice(""));
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.Seek(new Slice("b"));
+        iter.seek(new Slice("a"));
+        ASSERT_EQ(IterStatus(iter), "a->va");
+        iter.next();
+        ASSERT_EQ(IterStatus(iter), "(invalid)");
+
+        iter.seek(new Slice("b"));
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
         iter = null;
@@ -601,55 +601,55 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("c", "vc"));
         Iterator iter = db_.NewIterator(new ReadOptions());
 
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.SeekToLast();
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
-        iter.SeekToLast();
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.Seek(new Slice(""));
+        iter.seek(new Slice(""));
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Seek(new Slice("a"));
+        iter.seek(new Slice("a"));
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Seek(new Slice("ax"));
+        iter.seek(new Slice("ax"));
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Seek(new Slice("b"));
+        iter.seek(new Slice("b"));
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Seek(new Slice("z"));
+        iter.seek(new Slice("z"));
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
         // Switch from reverse to forward
-        iter.SeekToLast();
-        iter.Prev();
-        iter.Prev();
-        iter.Next();
+        iter.seekToLast();
+        iter.prev();
+        iter.prev();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "b->vb");
 
         // Switch from forward to reverse
-        iter.SeekToFirst();
-        iter.Next();
-        iter.Next();
-        iter.Prev();
+        iter.seekToFirst();
+        iter.next();
+        iter.next();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "b->vb");
 
         // Make sure iter stays at snapshot
@@ -658,21 +658,21 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("b", "vb2"));
         ASSERT_OK(Put("c", "vc2"));
         ASSERT_OK(Delete(new Slice("b")));
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
-        iter.SeekToLast();
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "b->vb");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
     }
 
@@ -685,30 +685,30 @@ public class DBTest extends TestCase {
 
         Iterator iter = db_.NewIterator(new ReadOptions());
 
-        iter.SeekToFirst();
+        iter.seekToFirst();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "b->" + TableTest.string(100000, 'b'));
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "d->" + TableTest.string(100000, 'd'));
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "e->" + TableTest.string(100000, 'e'));
-        iter.Next();
+        iter.next();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
 
-        iter.SeekToLast();
+        iter.seekToLast();
         ASSERT_EQ(IterStatus(iter), "e->" + TableTest.string(100000, 'e'));
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "d->" + TableTest.string(100000, 'd'));
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "b->" + TableTest.string(100000, 'b'));
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "a->va");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "(invalid)");
     }
 
@@ -720,9 +720,9 @@ public class DBTest extends TestCase {
         ASSERT_EQ("NOT_FOUND", Get("b"));
 
         Iterator iter = db_.NewIterator(new ReadOptions());
-        iter.Seek(new Slice("c"));
+        iter.seek(new Slice("c"));
         ASSERT_EQ(IterStatus(iter), "c->vc");
-        iter.Prev();
+        iter.prev();
         ASSERT_EQ(IterStatus(iter), "a->va");
     }
 
@@ -935,7 +935,7 @@ public class DBTest extends TestCase {
     public boolean Between(long val, long low, long high) {
         boolean result = (val >= low) && (val <= high);
         if (!result) {
-            System.err.println("Value " + val + " is not in range [" + low
+            System.err.println("value " + val + " is not in range [" + low
                     + ", " + high + "]\n");
         }
         return result;
@@ -1044,12 +1044,12 @@ public class DBTest extends TestCase {
         }
         Put("foo", "newvalue2");
 
-        iter.SeekToFirst();
-        assertTrue(iter.Valid());
+        iter.seekToFirst();
+        assertTrue(iter.valid());
         ASSERT_EQ("foo", iter.key().toString());
         ASSERT_EQ("hello", iter.value().toString());
-        iter.Next();
-        assert (!iter.Valid());
+        iter.next();
+        assert (!iter.valid());
     }
 
     public void testSnapshot() {

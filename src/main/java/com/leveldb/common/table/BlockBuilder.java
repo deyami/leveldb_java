@@ -63,9 +63,9 @@ public class BlockBuilder {
         int non_shared = key.size() - shared;
 
         // Add "<shared><non_shared><value_size>" to buffer_
-        buffer_.append(coding.EncodeVarint32(shared));
-        buffer_.append(coding.EncodeVarint32(non_shared));
-        buffer_.append(coding.EncodeVarint32(value.size()));
+        buffer_.append(coding.encodeVarint32(shared));
+        buffer_.append(coding.encodeVarint32(non_shared));
+        buffer_.append(coding.encodeVarint32(value.size()));
 
         // Add string delta (non-shared part) to buffer_ followed by value
         buffer_.append(key.data(), shared, non_shared);

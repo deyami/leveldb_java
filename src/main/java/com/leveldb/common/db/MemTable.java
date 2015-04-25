@@ -22,18 +22,18 @@ class MemTableIterator extends com.leveldb.common.Iterator {
     }
 
     @Override
-    public boolean Valid() {
+    public boolean valid() {
         return iter_.Valid();
     }
 
     @Override
-    public void SeekToFirst() {
+    public void seekToFirst() {
         iter_.SeekToFirst();
 
     }
 
     @Override
-    public void SeekToLast() {
+    public void seekToLast() {
         iter_.SeekToLast();
 
     }
@@ -41,25 +41,25 @@ class MemTableIterator extends com.leveldb.common.Iterator {
     // encode to s.size | s.data
     public byte[] EncodeKey(Slice target) {
         byte[] scratch = new byte[0];
-        scratch = util.add(scratch, coding.PutVarint32(target.size()),
+        scratch = util.add(scratch, coding.putVarint32(target.size()),
                 target.data());
         return scratch;
     }
 
     @Override
-    public void Seek(Slice k) {
+    public void seek(Slice k) {
         iter_.Seek(new Slice(EncodeKey(k)));
 
     }
 
     @Override
-    public void Next() {
+    public void next() {
         iter_.Next();
 
     }
 
     @Override
-    public void Prev() {
+    public void prev() {
         iter_.Prev();
 
     }
@@ -69,14 +69,14 @@ class MemTableIterator extends com.leveldb.common.Iterator {
     @Override
     public Slice key() {
         l4key_value = new ByteCollection(iter_.key().data(), 0);
-        return coding.GetLengthPrefixedSlice(l4key_value);// get
+        return coding.getLengthPrefixedSlice(l4key_value);// get
         // user-key|[sequencenumber
         // <<8 | type]
     }
 
     @Override
     public Slice value() {
-        return coding.GetLengthPrefixedSlice(l4key_value);
+        return coding.getLengthPrefixedSlice(l4key_value);
     }
 
     @Override
@@ -111,15 +111,15 @@ public class MemTable {
         }
 
         int compare(byte[] a, byte[] b) {
-            Slice as = coding.GetLengthPrefixedSlice(a);
-            Slice bs = coding.GetLengthPrefixedSlice(b);
+            Slice as = coding.getLengthPrefixedSlice(a);
+            Slice bs = coding.getLengthPrefixedSlice(b);
             return comparator.Compare(as, bs);
         }
 
         @Override
         public int compare(Slice k, Slice k2) {
-            Slice as = coding.GetLengthPrefixedSlice(k.data());
-            Slice bs = coding.GetLengthPrefixedSlice(k2.data());
+            Slice as = coding.getLengthPrefixedSlice(k.data());
+            Slice bs = coding.getLengthPrefixedSlice(k2.data());
             return comparator.Compare(as, bs);
         }
     }
@@ -178,13 +178,13 @@ public class MemTable {
         int key_size = key.size();
         int val_size = value.size();
         int internal_key_size = key_size + 8;
-        int encoded_len = coding.VarintLength(internal_key_size)
-                + internal_key_size + coding.VarintLength(val_size) + val_size;
+        int encoded_len = coding.varintLength(internal_key_size)
+                + internal_key_size + coding.varintLength(val_size) + val_size;
         byte[] buf = new byte[0];
         // char* buf = arena_.Allocate(encoded_len);
-        buf = util.addN(coding.EncodeVarint32(internal_key_size), key.data(),
+        buf = util.addN(coding.encodeVarint32(internal_key_size), key.data(),
                 util.toBytes((long) (seq.value << 8) | type),
-                coding.EncodeVarint32(val_size), value.data());
+                coding.encodeVarint32(val_size), value.data());
         // assert((p + val_size) - buf == encoded_len);
         assert (buf.length == encoded_len);
         table_.Insert(new Slice(buf));
@@ -210,11 +210,11 @@ public class MemTable {
             // vlength varint32
             // value char[vlength]
             // Check that it belongs to same user key. We do not check the
-            // sequence number since the Seek() call above should have skipped
+            // sequence number since the seek() call above should have skipped
             // all entries with overly large sequence numbers.
             Slice entry = iter.key();
             ByteCollection entry_ = new ByteCollection(entry.data(), 0);
-            int key_length = coding.GetVarint32(entry_); // get the key length
+            int key_length = coding.getVarint32(entry_); // get the key length
             if (comparator_.comparator.user_comparator().Compare(
                     new Slice(entry_.bytes, entry_.curr_pos, key_length - 8),
                     key.user_key()) == 0) {
@@ -225,7 +225,7 @@ public class MemTable {
                 switch ((int) (tag & 0xff)) {
                     case ValueType.kTypeValue: {
                         entry_.curr_pos += 8;
-                        Slice v = coding.GetLengthPrefixedSlice(entry_);
+                        Slice v = coding.getLengthPrefixedSlice(entry_);
                         getValue = new Slice(v.data()); // deep copy
                         // wlu, 2012-7-7
                         value.setData_(getValue.data());
