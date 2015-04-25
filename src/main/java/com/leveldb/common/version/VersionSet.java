@@ -285,7 +285,7 @@ public class VersionSet {
         table_cache_ = table_cache;
         icmp_ = cmp;
         next_file_number_ = 2;
-        manifest_file_number_ = 0; // Filled by Recover = )
+        manifest_file_number_ = 0; // Filled by recover = )
         last_sequence_ = new SequenceNumber(0);
         log_number_ = 0;
         prev_log_number_ = 0;
@@ -396,7 +396,7 @@ public class VersionSet {
         return s;
     }
 
-    // Recover the last saved descriptor from persistent storage.
+    // recover the last saved descriptor from persistent storage.
     public Status Recover() {
         class LogReporter extends Reader.Reporter {
             Status status;

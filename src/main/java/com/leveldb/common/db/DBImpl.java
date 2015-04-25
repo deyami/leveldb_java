@@ -169,7 +169,7 @@ public class DBImpl extends DB {
         return mutex_;
     }
 
-    private int ClipToRange(int ptr, int minvalue, int maxvalue) {
+    private int clipToRange(int ptr, int minvalue, int maxvalue) {
         if (ptr > maxvalue)
             ptr = maxvalue;
         if (ptr < minvalue)
@@ -177,14 +177,13 @@ public class DBImpl extends DB {
         return ptr;
     }
 
-    private Options SanitizeOptions(String dbname, InternalKeyComparator icmp,
-                                    Options src) {
+    private Options sanitizeOptions(String dbname, InternalKeyComparator icmp, Options src) {
         Options result = new Options();
         result.Options_(src);
         result.comparator = icmp;
-        ClipToRange(result.max_open_files, 20, 50000);
-        ClipToRange(result.write_buffer_size, 64 << 10, 1 << 30);
-        ClipToRange(result.block_size, 1 << 10, 4 << 20);
+        clipToRange(result.max_open_files, 20, 50000);
+        clipToRange(result.write_buffer_size, 64 << 10, 1 << 30);
+        clipToRange(result.block_size, 1 << 10, 4 << 20);
         if (result.info_log == null) {
             // open a log file in the same directory as the db
             src.env.createDir(dbname); // In case it does not exist
@@ -206,7 +205,7 @@ public class DBImpl extends DB {
     public DBImpl(Options options, String dbname) {
         env_ = options.env;
         internal_comparator_ = new InternalKeyComparator(options.comparator);
-        options_ = SanitizeOptions(dbname, internal_comparator_, options);
+        options_ = sanitizeOptions(dbname, internal_comparator_, options);
         owns_info_log_ = options_.info_log != options.info_log;
         owns_cache_ = options_.block_cache != options.block_cache;
         dbname_ = dbname;
@@ -269,12 +268,12 @@ public class DBImpl extends DB {
             }
 
             // May temporarily unlock and wait.
-            status = MakeRoomForWrite(my_batch == null);
+            status = makeRoomForWrite(my_batch == null);
             SequenceNumber last_sequence = versions_.LastSequence();
             Writer last_writer = w;
             if (status.ok() && my_batch != null) { // NULL batch is for
                 // compactions
-                WriteBatch updates = BuildBatchGroup(last_writer);
+                WriteBatch updates = buildBatchGroup(last_writer);
                 WriteBatchInternal
                         .SetSequence(updates, last_sequence.value + 1);
                 last_sequence.value += WriteBatchInternal.count(updates);
@@ -328,7 +327,7 @@ public class DBImpl extends DB {
 
     // REQUIRES: mutex_ is held
     // REQUIRES: this thread is currently at the front of the writer queue
-    private Status MakeRoomForWrite(boolean force) {
+    private Status makeRoomForWrite(boolean force) {
         mutex_.isHeldByCurrentThread();
         assert (!writers_.isEmpty());
         boolean allow_delay = !force;
@@ -385,7 +384,7 @@ public class DBImpl extends DB {
                 mem_.Ref();
                 force = false; // Do not force another compaction if have room
                 LOG.info("Attempt to switch to a new memtable and trigger compaction of old");
-                MaybeScheduleCompaction();
+                maybeScheduleCompaction();
             }
         }
         return s;
@@ -393,7 +392,7 @@ public class DBImpl extends DB {
 
     // REQUIRES: Writer list must be non-empty
     // REQUIRES: First writer must have a non-NULL batch
-    private WriteBatch BuildBatchGroup(Writer last_writer) {
+    private WriteBatch buildBatchGroup(Writer last_writer) {
         assert (!writers_.isEmpty());
         Writer first = writers_.peek();
         WriteBatch result = first.batch;
@@ -489,7 +488,7 @@ public class DBImpl extends DB {
         }
 
         if (have_stat_update && current.UpdateStats(stats)) {
-            MaybeScheduleCompaction();
+            maybeScheduleCompaction();
         }
         mem.Unref();
         if (imm != null)
@@ -514,7 +513,7 @@ public class DBImpl extends DB {
      * create a new file (with new sequence number) for compact.outfile; create
      * a new TableBuilder for the compact.builder
      */
-    Status OpenCompactionOutputFile(CompactionState compact) {
+    Status openCompactionOutputFile(CompactionState compact) {
         assert (compact != null);
         assert (compact.builder == null);
         long file_number;
@@ -589,7 +588,7 @@ public class DBImpl extends DB {
 
     }
 
-    Status FinishCompactionOutputFile(CompactionState compact, Iterator input) {
+    Status finishCompactionOutputFile(CompactionState compact, Iterator input) {
         assert (compact != null);
         assert (compact.outfile != null);
         assert (compact.builder != null);
@@ -639,7 +638,7 @@ public class DBImpl extends DB {
         return s;
     }
 
-    Status InstallCompactionResults(CompactionState compact) {
+    Status installCompactionResults(CompactionState compact) {
         mutex_.isHeldByCurrentThread();
         LOG.info("Compacted " + compact.compaction.num_input_files(0) + "@"
                 + compact.compaction.level() + " + "
@@ -658,7 +657,7 @@ public class DBImpl extends DB {
         return versions_.LogAndApply(compact.compaction.edit(), mutex_);
     }
 
-    void CleanupCompaction(CompactionState compact) {
+    void cleanupCompaction(CompactionState compact) {
         mutex_.isHeldByCurrentThread();
         if (compact.builder != null) {
             // May happen if we get a shutdown call in the middle of compaction
@@ -686,7 +685,7 @@ public class DBImpl extends DB {
      * @param compact
      * @return
      */
-    Status DoCompactionWork(CompactionState compact) {
+    Status doCompactionWork(CompactionState compact) {
         long start_micros = env_.nowMicros();
         long imm_micros = 0; // Micros spent doing imm_ compactions
 
@@ -720,8 +719,8 @@ public class DBImpl extends DB {
                 long imm_start = env_.nowMicros();
                 mutex_.lock();
                 if (imm_ != null) {
-                    CompactMemTable();
-                    bg_cv_.signalAll(); // Wakeup MakeRoomForWrite() if
+                    compactMemTable();
+                    bg_cv_.signalAll(); // Wakeup makeRoomForWrite() if
                     // necessary
                 }
                 mutex_.unlock();
@@ -731,7 +730,7 @@ public class DBImpl extends DB {
             Slice key = input.key();
             if (compact.compaction.ShouldStopBefore(key)
                     && compact.builder != null) {
-                status = FinishCompactionOutputFile(compact, input);
+                status = finishCompactionOutputFile(compact, input);
                 if (!status.ok()) {
                     break;
                 }
@@ -790,7 +789,7 @@ public class DBImpl extends DB {
             if (!drop) {
                 // open output file if necessary
                 if (compact.builder == null) {
-                    status = OpenCompactionOutputFile(compact);
+                    status = openCompactionOutputFile(compact);
                     if (!status.ok()) {
                         break;
                     }
@@ -804,7 +803,7 @@ public class DBImpl extends DB {
                 // close output file if it is big enough
                 if (compact.builder.FileSize() >= compact.compaction
                         .MaxOutputFileSize()) {
-                    status = FinishCompactionOutputFile(compact, input);
+                    status = finishCompactionOutputFile(compact, input);
                     if (!status.ok()) {
                         break;
                     }
@@ -819,7 +818,7 @@ public class DBImpl extends DB {
                     null);
         }
         if (status.ok() && compact.builder != null) {
-            status = FinishCompactionOutputFile(compact, input);
+            status = finishCompactionOutputFile(compact, input);
         }
         if (status.ok()) {
             status = input.status();
@@ -841,7 +840,7 @@ public class DBImpl extends DB {
         stats_[compact.compaction.level() + 1].Add(stats);
 
         if (status.ok()) {
-            status = InstallCompactionResults(compact);
+            status = installCompactionResults(compact);
         }
         VersionSet.LevelSummaryStorage tmp = new VersionSet.LevelSummaryStorage();
         LOG.info("compacted to: " + versions_.LevelSummary(tmp));
@@ -852,7 +851,7 @@ public class DBImpl extends DB {
      * write memtable data to leve0 or higher; call: Builder.BuildTable; add a
      * CompactStatus to the selected level
      */
-    private Status WriteLevel0Table(MemTable mem, VersionEdit edit, Version base) {
+    private Status writeLevel0Table(MemTable mem, VersionEdit edit, Version base) {
         assert (mutex_.isHeldByCurrentThread());// AssertHeld();
         long start_micros = env_.nowMicros();
         FileMetaData meta = new FileMetaData();
@@ -860,7 +859,7 @@ public class DBImpl extends DB {
         pending_outputs_.add(meta.getNumber());
         Iterator iter = mem.NewIterator();
         LOG.info("Level-0 table #" + meta.number
-                + ": started (in WriteLevel0Table(...))");
+                + ": started (in writeLevel0Table(...))");
 
         Status s;
         {
@@ -896,7 +895,7 @@ public class DBImpl extends DB {
         return s;
     }
 
-    Status CompactMemTable() {
+    Status compactMemTable() {
         assert (mutex_.isHeldByCurrentThread());
         assert (imm_ != null);
 
@@ -904,7 +903,7 @@ public class DBImpl extends DB {
         VersionEdit edit = new VersionEdit();
         Version base = versions_.current();
         base.Ref();
-        Status s = WriteLevel0Table(imm_, edit, base);
+        Status s = writeLevel0Table(imm_, edit, base);
         base.Unref();
 
         if (s.ok() && shutting_down_.get()) {
@@ -924,7 +923,7 @@ public class DBImpl extends DB {
             imm_.Unref();
             imm_ = null;
             has_imm_.releaseStore(null); // set to null
-            DeleteObsoleteFiles();
+            deleteObsoleteFiles();
         }
 
         return s;
@@ -942,16 +941,16 @@ public class DBImpl extends DB {
      * <ol>
      * <li>c==null, do nothing</li>
      * <li>not manual AND is trival move, move by "del and add"</li>
-     * <li>call {DoCompactionWork}</li>
+     * <li>call {doCompactionWork}</li>
      * </ol>
      */
-    private void BackgroundCompaction() {
+    private void backgroundCompaction() {
         if (!mutex_.isHeldByCurrentThread()) {
             return;
         }
 
         if (imm_ != null) {
-            CompactMemTable();
+            compactMemTable();
             return;
         }
 
@@ -998,10 +997,10 @@ public class DBImpl extends DB {
                     + ": " + versions_.LevelSummary(tmp) + "\n");
         } else {
             CompactionState compact = new CompactionState(c);
-            status = DoCompactionWork(compact);
-            CleanupCompaction(compact);
+            status = doCompactionWork(compact);
+            cleanupCompaction(compact);
             c.ReleaseInputs();
-            DeleteObsoleteFiles();
+            deleteObsoleteFiles();
         }
         // delete c;
 
@@ -1035,7 +1034,7 @@ public class DBImpl extends DB {
     @Override
     public Iterator newIterator(ReadOptions options) {
         SequenceNumber latest_snapshot = new SequenceNumber(0);
-        Iterator internal_iter = NewInternalIterator(options, latest_snapshot);
+        Iterator internal_iter = newInternalIterator(options, latest_snapshot);
         return DBIter
                 .NewDBIterator(
                         dbname_,
@@ -1206,7 +1205,7 @@ public class DBImpl extends DB {
                     bg_cv_.await();
                 }
                 manual_compaction_ = manual;
-                MaybeScheduleCompaction();
+                maybeScheduleCompaction();
                 while (manual_compaction_ == manual) {
                     bg_cv_.await();
                 }
@@ -1263,7 +1262,7 @@ public class DBImpl extends DB {
         }
     }
 
-    Iterator NewInternalIterator(ReadOptions options,
+    Iterator newInternalIterator(ReadOptions options,
                                  SequenceNumber latest_snapshot) {
         IterState cleanup = new IterState();
         mutex_.lock();
@@ -1331,7 +1330,7 @@ public class DBImpl extends DB {
     // The returned iterator should be deleted when no longer needed.
     public Iterator TEST_NewInternalIterator() {
         SequenceNumber ignored = new SequenceNumber(0);
-        return NewInternalIterator(new ReadOptions(), ignored);
+        return newInternalIterator(new ReadOptions(), ignored);
     }
 
     // Return the maximum overlapping data (in bytes) at next level for any
@@ -1345,7 +1344,7 @@ public class DBImpl extends DB {
         }
     }
 
-    private Status NewDB() {
+    private Status newDB() {
         VersionEdit new_db = new VersionEdit();
         new_db.setComparatorName(new Slice(user_comparator().name()));
         new_db.setLogNumber(0);
@@ -1383,10 +1382,10 @@ public class DBImpl extends DB {
         return s;
     }
 
-    // Recover the descriptor from persistent storage. May do a significant
+    // recover the descriptor from persistent storage. May do a significant
     // amount of work to recover recently logged updates. Any changes to
     // be made to the descriptor are added to *edit.
-    public Status Recover(VersionEdit edit) {
+    public Status recover(VersionEdit edit) {
         if (!mutex_.isHeldByCurrentThread()) {
             return Status.notSupported(new Slice("mutex should be hold"), null);
         }
@@ -1404,7 +1403,7 @@ public class DBImpl extends DB {
         Status s = null;
         if (!env_.fileExists(FileName.currentFileName(dbname_))) {
             if (options_.create_if_missing) {
-                s = NewDB();
+                s = newDB();
                 if (!s.ok()) {
                     return s;
                 }
@@ -1423,7 +1422,7 @@ public class DBImpl extends DB {
         if (s.ok()) {
             SequenceNumber max_sequence = new SequenceNumber(0);
 
-            // Recover from all newer log files than the ones named in the
+            // recover from all newer log files than the ones named in the
             // descriptor (new log files may have been added by the previous
             // incarnation without registering them in the descriptor).
             //
@@ -1450,10 +1449,10 @@ public class DBImpl extends DB {
                 }
             }
 
-            // Recover in the order in which the logs were generated
+            // recover in the order in which the logs were generated
             Collections.sort(logs);
             for (int i = 0; i < logs.size(); i++) {
-                s = RecoverLogFile(logs.get(i), edit, max_sequence);
+                s = recoverLogFile(logs.get(i), edit, max_sequence);
 
                 // The previous incarnation may not have written any MANIFEST
                 // records after allocating this log number. So we manually
@@ -1471,8 +1470,8 @@ public class DBImpl extends DB {
         return s;
     }
 
-    // for RecoverLogFile
-    private void MaybeIgnoreError(Status s) {
+    // for recoverLogFile
+    private void maybeIgnoreError(Status s) {
         if (s.ok() || options_.paranoid_checks) {
             // No change needed
         } else {
@@ -1481,7 +1480,7 @@ public class DBImpl extends DB {
         }
     }
 
-    public void DeleteObsoleteFiles() {
+    public void deleteObsoleteFiles() {
         // Make a set of all of the live files
         Set<Long> live = pending_outputs_;
         versions_.AddLiveFiles(live);
@@ -1540,7 +1539,7 @@ public class DBImpl extends DB {
         }
     }
 
-    private Status RecoverLogFile(long log_number, VersionEdit edit,
+    private Status recoverLogFile(long log_number, VersionEdit edit,
                                   SequenceNumber max_sequence) {
         class LogReporter extends Reader.Reporter {
             Env env;
@@ -1578,7 +1577,7 @@ public class DBImpl extends DB {
         String fname = FileName.logFileName(dbname_, log_number);
         _SequentialFile file = env_.newSequentialFile(fname);
         Status status = new Status();
-        // MaybeIgnoreError(status);
+        // maybeIgnoreError(status);
         // return status;
 
         // Create the log reader.
@@ -1612,7 +1611,7 @@ public class DBImpl extends DB {
                 mem.Ref();
             }
             status = WriteBatchInternal.InsertInto(batch, mem);
-            MaybeIgnoreError(status);
+            maybeIgnoreError(status);
             if (!status.ok()) {
                 break;
             }
@@ -1623,7 +1622,7 @@ public class DBImpl extends DB {
             }
 
             if (mem.ApproximateMemoryUsage() > options_.write_buffer_size) {
-                status = WriteLevel0Table(mem, edit, null);
+                status = writeLevel0Table(mem, edit, null);
                 if (!status.ok()) {
                     // Reflect errors immediately so that conditions like full
                     // file-systems cause the DB::open() to fail.
@@ -1635,7 +1634,7 @@ public class DBImpl extends DB {
         }
 
         if (status.ok() && mem != null) {
-            status = WriteLevel0Table(mem, edit, null);
+            status = writeLevel0Table(mem, edit, null);
             // Reflect errors immediately so that conditions like full
             // file-systems cause the DB::open() to fail.
         }
@@ -1647,7 +1646,7 @@ public class DBImpl extends DB {
         return status;
     }
 
-    public void MaybeScheduleCompaction() {
+    public void maybeScheduleCompaction() {
         assert (mutex_.isHeldByCurrentThread());
         if (bg_compaction_scheduled_) {
             // Already scheduled
@@ -1667,18 +1666,18 @@ public class DBImpl extends DB {
         }
     }
 
-    void BackgroundCall() {
+    void backgroundCall() {
         mutex_.lock();
         // try {
         assert (bg_compaction_scheduled_);
         if (!shutting_down_.get()) {
-            BackgroundCompaction();
+            backgroundCompaction();
         }
         bg_compaction_scheduled_ = false;
 
         // Previous compaction may have produced too many files in a level,
         // so reschedule another compaction if needed.
-        MaybeScheduleCompaction();
+        maybeScheduleCompaction();
         bg_cv_.signalAll();
         // } finally {
         mutex_.unlock();
@@ -1688,7 +1687,7 @@ public class DBImpl extends DB {
     class BGWork implements Function {
         @Override
         public void exec(Object... args) {
-            BackgroundCall();
+            backgroundCall();
         }
 
     }

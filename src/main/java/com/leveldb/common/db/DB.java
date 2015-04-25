@@ -115,7 +115,7 @@ public abstract class DB {
         DBImpl impl = new DBImpl(options, dbname);
         impl.getmutex().lock();
         VersionEdit edit = new VersionEdit();
-        Status s = impl.Recover(edit); // Handles create_if_missing,
+        Status s = impl.recover(edit); // Handles create_if_missing,
         // error_if_exists
         if (s.ok()) {
             long new_log_number = impl.versions_.NewFileNumber();
@@ -129,8 +129,8 @@ public abstract class DB {
                 s = impl.versions_.LogAndApply(edit, impl.mutex_);
             }
             if (s.ok()) {
-                impl.DeleteObsoleteFiles();
-                impl.MaybeScheduleCompaction();
+                impl.deleteObsoleteFiles();
+                impl.maybeScheduleCompaction();
             }
         }
         impl.mutex_.unlock();
@@ -148,36 +148,38 @@ public abstract class DB {
         DB dbptr = null;
         DBImpl impl = new DBImpl(options, dbname);
         impl.getmutex().lock();
-        VersionEdit edit = new VersionEdit();
-        Status s = impl.Recover(edit); // Handles create_if_missing,
-        // error_if_exists
-        if (s.ok()) {
-            long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.newWritableFile(FileName
-                    .logFileName(dbname, new_log_number));
-            {
-                edit.setLogNumber(new_log_number);
-                impl.logfile_ = lfile;
-                impl.logfile_number_ = new_log_number;
-                impl.log_ = new Writer(lfile);
-                s = impl.versions_.LogAndApply(edit, impl.mutex_);
+        try {
+            VersionEdit edit = new VersionEdit();
+            Status s = impl.recover(edit); // Handles create_if_missing,
+            // error_if_exists
+            if (s.ok()) {
+                long new_log_number = impl.versions_.NewFileNumber();
+                _WritableFile lfile = options.env.newWritableFile(FileName
+                        .logFileName(dbname, new_log_number));
+                {
+                    edit.setLogNumber(new_log_number);
+                    impl.logfile_ = lfile;
+                    impl.logfile_number_ = new_log_number;
+                    impl.log_ = new Writer(lfile);
+                    s = impl.versions_.LogAndApply(edit, impl.mutex_);
+                }
+                if (s.ok()) {
+                    impl.deleteObsoleteFiles();
+                    impl.maybeScheduleCompaction();
+                }
             }
             if (s.ok()) {
-                impl.DeleteObsoleteFiles();
-                impl.MaybeScheduleCompaction();
+                dbptr = impl;
+            } else {
+                // wlu, 2012-7-10, bugFix: something goes wrong, release resources
+                impl.close();
+                impl = null;
+
             }
+            s_.Status_(s);
+        }finally {
+            impl.mutex_.unlock();
         }
-        impl.mutex_.unlock();
-        if (s.ok()) {
-            dbptr = impl;
-        } else {
-            // wlu, 2012-7-10, bugFix: something goes wrong, release resources
-            impl.close();
-            impl = null;
-
-        }
-
-        s_.Status_(s);
         return dbptr;
     }
 
