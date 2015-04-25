@@ -165,7 +165,7 @@ public class Version {
 
     // Append to iters a sequence of iterators that will
     // yield the contents of this Version when merged together.
-    // REQUIRES: This version has been saved (see VersionSet::SaveTo)
+    // REQUIRES: This version has been saved (see VersionSet::saveTo)
     public void AddIterators(ReadOptions readoption, List<Iterator> iters) {
         // Merge all level zero files together since they may overlap
         for (int i = 0; i < files_.get(0).size(); i++) {
@@ -411,7 +411,7 @@ public class Version {
         --refs_;
         if (refs_ == 0) {
             // wlu, 2012-7-7
-            vset_.Close();
+            vset_.close();
         }
     }
 

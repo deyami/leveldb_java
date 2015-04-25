@@ -70,10 +70,9 @@ public class VersionEdit {
     }
 
     // Add the specified file at the specified number.
-    // REQUIRES: This version has not been saved (see VersionSet::SaveTo)
+    // REQUIRES: This version has not been saved (see VersionSet::saveTo)
     // REQUIRES: "smallest" and "largest" are smallest and largest keys in file
-    public void addFile(int level, long file, long file_size, InternalKey smallest,
-                        InternalKey largest) {
+    public void addFile(int level, long file, long file_size, InternalKey smallest, InternalKey largest) {
         FileMetaData f = new FileMetaData();
         f.setNumber(file);
         f.setFile_size(file_size);

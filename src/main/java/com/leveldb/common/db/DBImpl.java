@@ -366,7 +366,7 @@ public class DBImpl extends DB {
                 // Attempt to switch to a new memtable and trigger compaction of
                 // old
                 assert (versions_.PrevLogNumber() == 0);
-                long new_log_number = versions_.NewFileNumber();
+                long new_log_number = versions_.newFileNumber();
                 _WritableFile lfile = env_.newWritableFile(FileName
                         .logFileName(dbname_, new_log_number));
                 if (!s.ok()) {
@@ -519,7 +519,7 @@ public class DBImpl extends DB {
         long file_number;
         {
             mutex_.lock();
-            file_number = versions_.NewFileNumber();
+            file_number = versions_.newFileNumber();
             pending_outputs_.add(file_number);
             CompactionState.Output out = new CompactionState.Output();
             out.number = file_number;
@@ -553,7 +553,7 @@ public class DBImpl extends DB {
             env_.unlockFile(db_lock_);
         }
 
-        versions_.Close();// close the files
+        versions_.close();// close the files
         versions_ = null;
         if (mem_ != null)
             mem_.Unref();
@@ -654,7 +654,7 @@ public class DBImpl extends DB {
             compact.compaction.edit().addFile(level + 1, out.number,
                     out.file_size, out.smallest, out.largest);
         }
-        return versions_.LogAndApply(compact.compaction.edit(), mutex_);
+        return versions_.logAndApply(compact.compaction.edit(), mutex_);
     }
 
     void cleanupCompaction(CompactionState compact) {
@@ -855,7 +855,7 @@ public class DBImpl extends DB {
         assert (mutex_.isHeldByCurrentThread());// AssertHeld();
         long start_micros = env_.nowMicros();
         FileMetaData meta = new FileMetaData();
-        meta.setNumber(versions_.NewFileNumber());
+        meta.setNumber(versions_.newFileNumber());
         pending_outputs_.add(meta.getNumber());
         Iterator iter = mem.NewIterator();
         LOG.info("Level-0 table #" + meta.number
@@ -915,7 +915,7 @@ public class DBImpl extends DB {
         if (s.ok()) {
             edit.setPrevLogNumber(0);
             edit.setLogNumber(logfile_number_); // Earlier logs no longer needed
-            s = versions_.LogAndApply(edit, mutex_); // TODO
+            s = versions_.logAndApply(edit, mutex_); // TODO
         }
 
         if (s.ok()) {
@@ -990,7 +990,7 @@ public class DBImpl extends DB {
             c.edit().deleteFile(c.level(), f.getNumber());
             c.edit().addFile(c.level() + 1, f.getNumber(), f.getFile_size(),
                     f.getSmallest(), f.getLargest());
-            status = versions_.LogAndApply(c.edit(), mutex_);
+            status = versions_.logAndApply(c.edit(), mutex_);
             VersionSet.LevelSummaryStorage tmp = new VersionSet.LevelSummaryStorage();
             LOG.info("Moved " + (f.getNumber()) + "to level-" + (c.level() + 1)
                     + " " + (f.getFile_size()) + " bytes " + status.toString()
@@ -1418,7 +1418,7 @@ public class DBImpl extends DB {
             }
         }
 
-        s = versions_.Recover();
+        s = versions_.recover();
         if (s.ok()) {
             SequenceNumber max_sequence = new SequenceNumber(0);
 
@@ -1506,7 +1506,7 @@ public class DBImpl extends DB {
                     case FileType.kDescriptorFile:
                         // Keep my manifest file, and any newer incarnations'
                         // (in case there is a race that allows other incarnations)
-                        keep = (number >= versions_.ManifestFileNumber());
+                        keep = (number >= versions_.manifestFileNumber());
                         break;
                     case FileType.kTableFile:
                         keep = live.contains(number);

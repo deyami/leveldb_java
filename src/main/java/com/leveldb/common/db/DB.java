@@ -114,32 +114,34 @@ public abstract class DB {
         DB dbptr = null;
         DBImpl impl = new DBImpl(options, dbname);
         impl.getmutex().lock();
-        VersionEdit edit = new VersionEdit();
-        Status s = impl.recover(edit); // Handles create_if_missing,
-        // error_if_exists
-        if (s.ok()) {
-            long new_log_number = impl.versions_.NewFileNumber();
-            _WritableFile lfile = options.env.newWritableFile(FileName
-                    .logFileName(dbname, new_log_number));
-            {
-                edit.setLogNumber(new_log_number);
-                impl.logfile_ = lfile;
-                impl.logfile_number_ = new_log_number;
-                impl.log_ = new Writer(lfile);
-                s = impl.versions_.LogAndApply(edit, impl.mutex_);
+        try {
+            VersionEdit edit = new VersionEdit();
+            Status s = impl.recover(edit); // Handles create_if_missing,
+            // error_if_exists
+            if (s.ok()) {
+                long new_log_number = impl.versions_.newFileNumber();
+                _WritableFile lfile = options.env.newWritableFile(FileName.logFileName(dbname, new_log_number));
+                {
+                    edit.setLogNumber(new_log_number);
+                    impl.logfile_ = lfile;
+                    impl.logfile_number_ = new_log_number;
+                    impl.log_ = new Writer(lfile);
+                    s = impl.versions_.logAndApply(edit, impl.mutex_);
+                }
+                if (s.ok()) {
+                    impl.deleteObsoleteFiles();
+                    impl.maybeScheduleCompaction();
+                }
             }
             if (s.ok()) {
-                impl.deleteObsoleteFiles();
-                impl.maybeScheduleCompaction();
+                dbptr = impl;
+            } else {
+                // wlu, 2012-7-10, bugFix: something goes wrong, release resources
+                impl.close();
+                impl = null;
             }
-        }
-        impl.mutex_.unlock();
-        if (s.ok()) {
-            dbptr = impl;
-        } else {
-            // wlu, 2012-7-10, bugFix: something goes wrong, release resources
-            impl.close();
-            impl = null;
+        }finally{
+            impl.mutex_.unlock();
         }
         return dbptr;
     }
@@ -153,7 +155,7 @@ public abstract class DB {
             Status s = impl.recover(edit); // Handles create_if_missing,
             // error_if_exists
             if (s.ok()) {
-                long new_log_number = impl.versions_.NewFileNumber();
+                long new_log_number = impl.versions_.newFileNumber();
                 _WritableFile lfile = options.env.newWritableFile(FileName
                         .logFileName(dbname, new_log_number));
                 {
@@ -161,7 +163,7 @@ public abstract class DB {
                     impl.logfile_ = lfile;
                     impl.logfile_number_ = new_log_number;
                     impl.log_ = new Writer(lfile);
-                    s = impl.versions_.LogAndApply(edit, impl.mutex_);
+                    s = impl.versions_.logAndApply(edit, impl.mutex_);
                 }
                 if (s.ok()) {
                     impl.deleteObsoleteFiles();

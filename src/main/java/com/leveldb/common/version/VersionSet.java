@@ -31,7 +31,7 @@ public class VersionSet {
 
     Log LOG = LogFactory.getLog(VersionSet.class);
 
-    public void Close() {
+    public void close() {
         // wlu, 2012-7-10, bugFix: check before operating
         if (descriptor_file_ != null) {
             descriptor_file_.Close();
@@ -139,8 +139,8 @@ public class VersionSet {
             // base_->Unref();
         }
 
-        // Apply all of the edits in *edit to the current state.
-        void Apply(VersionEdit edit) {
+        // apply all of the edits in *edit to the current state.
+        void apply(VersionEdit edit) {
             // Update compaction pointers
             for (int i = 0; i < edit.compact_pointers_.size(); i++) {
                 int level = edit.compact_pointers_.get(i).getFirst();
@@ -189,7 +189,7 @@ public class VersionSet {
         }
 
         // Save the current state in v. Merge base files and added files
-        void SaveTo(Version v) throws Exception {
+        void saveTo(Version v) throws Exception {
             // BySmallestKey cmp;
             // cmp.internal_comparator = &vset_->icmp_;
             for (int level = 0; level < config.kNumLevels; level++) {
@@ -219,21 +219,21 @@ public class VersionSet {
                             lbase = base_iter.next();
                         }
                         if (ladded.compareTo(lbase) > 0) {
-                            MaybeAddFile(v, level, lbase);
+                            maybeAddFile(v, level, lbase);
                             base_added = true;
                         } else {
                             base_added = false;
                             break;
                         }
                     }
-                    MaybeAddFile(v, level, ladded);
+                    maybeAddFile(v, level, ladded);
                 }
                 // Add remaining base files
                 for (; (base_added && base_iter.hasNext()) || !base_added; ) {
                     if (base_added) {
                         lbase = base_iter.next();
                     }
-                    MaybeAddFile(v, level, lbase);
+                    maybeAddFile(v, level, lbase);
                     base_added = true;
                 }
 
@@ -259,7 +259,7 @@ public class VersionSet {
          * <li>f is not in deleted_files</li> <li>f is not in overlapped with
          * any file in the level</li>
          */
-        void MaybeAddFile(Version v, int level, FileMetaData f) {
+        void maybeAddFile(Version v, int level, FileMetaData f) {
             if (levels_[level].deleted_files.contains(f.number)) {
                 // File is deleted: do nothing
             } else {
@@ -300,19 +300,19 @@ public class VersionSet {
     }
 
     /**
-     * Apply *edit to the current version to form a new descriptor that is both
+     * apply *edit to the current version to form a new descriptor that is both
      * saved to persistent state and installed as the new current version. Will
      * release *mu while actually writing to the file.
      * <p>
      * </p>
      * REQUIRES: mu is held on entry. REQUIRES: no other thread concurrently
-     * calls LogAndApply()
+     * calls logAndApply()
      *
      * @param edit
      * @param mu
      * @return
      */
-    public Status LogAndApply(VersionEdit edit, ReentrantLock mu) {
+    public Status logAndApply(VersionEdit edit, ReentrantLock mu) {
         if (edit.has_log_number_) {
             assert (edit.log_number_ >= log_number_);
             assert (edit.log_number_ < next_file_number_);
@@ -330,9 +330,9 @@ public class VersionSet {
         Version v = new Version(this);
         {
             Builder builder = new Builder(this, current_);
-            builder.Apply(edit);
+            builder.apply(edit);
             try {
-                builder.SaveTo(v);
+                builder.saveTo(v);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -345,7 +345,7 @@ public class VersionSet {
         Status s = Status.OK();
         if (descriptor_log_ == null) {
             // No reason to unlock *mu here since we only hit this path in the
-            // first call to LogAndApply (when opening the database).
+            // first call to logAndApply (when opening the database).
             assert (descriptor_file_ == null);
             new_manifest_file = FileName.descriptorFileName(dbname_,
                     manifest_file_number_);
@@ -397,7 +397,7 @@ public class VersionSet {
     }
 
     // recover the last saved descriptor from persistent storage.
-    public Status Recover() {
+    public Status recover() {
         class LogReporter extends Reader.Reporter {
             Status status;
 
@@ -455,7 +455,7 @@ public class VersionSet {
                 }
 
                 if (s.ok()) {
-                    builder.Apply(edit);
+                    builder.apply(edit);
                 }
 
                 if (edit.has_log_number_) {
@@ -483,7 +483,7 @@ public class VersionSet {
         if (s.ok()) {
             if (!have_next_file) {
                 s = Status.corruption(new Slice(
-                        "no meta-nextfile entry in descriptor"), null);
+                        "nversions_o meta-nextfile entry in descriptor"), null);
             } else if (!have_log_number) {
                 s = Status.corruption(new Slice(
                         "no meta-lognumber entry in descriptor"), null);
@@ -503,7 +503,7 @@ public class VersionSet {
         if (s.ok()) {
             Version v = new Version(this);
             try {
-                builder.SaveTo(v);
+                builder.saveTo(v);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -527,12 +527,12 @@ public class VersionSet {
     }
 
     // Return the current manifest file number
-    public long ManifestFileNumber() {
+    public long manifestFileNumber() {
         return manifest_file_number_;
     }
 
     // Allocate and return a new file number
-    public long NewFileNumber() {
+    public long newFileNumber() {
         return next_file_number_++;
     }
 
