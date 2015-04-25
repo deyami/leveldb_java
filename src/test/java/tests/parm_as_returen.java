@@ -139,7 +139,6 @@ public class parm_as_returen {
 
         }
 
-        SkipList.Iterator i;
 
     }
 }

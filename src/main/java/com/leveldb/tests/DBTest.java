@@ -31,8 +31,8 @@ public class DBTest extends TestCase {
 
         public SpecialEnv(Env base) {
             super(base);
-            delay_sstable_sync_.Release_Store(null);
-            no_space_.Release_Store(null);
+            delay_sstable_sync_.releaseStore(null);
+            no_space_.releaseStore(null);
         }
 
         public _WritableFile newWritableFile(String f) {
@@ -48,7 +48,7 @@ public class DBTest extends TestCase {
 
                 // ~SSTableFile() { delete base_; }
                 public Status Append(Slice data) {
-                    if (env_.no_space_.Acquire_Load() != null) {
+                    if (env_.no_space_.acquireLoad() != null) {
                         // Drop writes on the floor
                         return Status.OK();
                     } else {
@@ -65,7 +65,7 @@ public class DBTest extends TestCase {
                 }
 
                 public Status Sync() {
-                    while (env_.delay_sstable_sync_.Acquire_Load() != null) {
+                    while (env_.delay_sstable_sync_.acquireLoad() != null) {
                         env_.sleepForMicroseconds(100000);
                     }
                     return base_.Sync();
@@ -430,11 +430,11 @@ public class DBTest extends TestCase {
         ASSERT_OK(Put("foo", "v1"));
         ASSERT_EQ("v1", Get("foo"));
 
-        env_.delay_sstable_sync_.Release_Store(env_); // Block sync calls
+        env_.delay_sstable_sync_.releaseStore(env_); // Block sync calls
         Put("k1", TableTest.string(100000, 'x')); // Fill memtable
         Put("k2", TableTest.string(100000, 'y')); // Trigger compaction
         ASSERT_EQ("v1", Get("foo"));
-        env_.delay_sstable_sync_.Release_Store(null); // release sync calls
+        env_.delay_sstable_sync_.releaseStore(null); // release sync calls
         assertTrue(Close());
     }
 
@@ -1439,13 +1439,13 @@ public class DBTest extends TestCase {
         ASSERT_EQ("v1", Get("foo"));
         Compact("a", "z");
         int num_files = CountFiles();
-        env_.no_space_.Release_Store(env_); // Force out-of-space errors
+        env_.no_space_.releaseStore(env_); // Force out-of-space errors
         for (int i = 0; i < 10; i++) {
             for (int level = 0; level < config.kNumLevels - 1; level++) {
                 dbfull().TEST_CompactRange(level, null, null);
             }
         }
-        env_.no_space_.Release_Store(null);
+        env_.no_space_.releaseStore(null);
         assertTrue(CountFiles() < num_files + 5);
     }
 

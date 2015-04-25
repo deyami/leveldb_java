@@ -93,12 +93,12 @@ public class SkipListTestMore {
                 K);
 
         void Set(int k, long v) {
-            generation.get(k).Release_Store(v);
-            // generation[k].Release_Store(reinterpret_cast<void*>(v));
+            generation.get(k).releaseStore(v);
+            // generation[k].releaseStore(reinterpret_cast<void*>(v));
         }
 
         long Get(int k) {
-            return generation.get(k).Acquire_Load();
+            return generation.get(k).acquireLoad();
         }
 
         public State() {
@@ -139,7 +139,7 @@ public class SkipListTestMore {
         int k = (Math.abs(rnd.nextInt())) % K;
         long g = current_.Get(k) + 1;
         long key = MakeKey(k, g);
-        list_.Insert(key);
+        list_.insert(key);
         current_.Set(k, g);
     }
 
@@ -167,10 +167,10 @@ public class SkipListTestMore {
         // System.out.println(pos);
         SkipListIterator<Long, TestComparator> iter = new SkipListIterator<Long, SkipListTestMore.TestComparator>(
                 list_);
-        iter.Seek(pos);
+        iter.seek(pos);
         while (true) {
             long current;
-            if (!iter.Valid()) {
+            if (!iter.valid()) {
                 current = MakeKey(K, 0);
             } else {
                 // get the value, is it the latest???
@@ -218,18 +218,18 @@ public class SkipListTestMore {
                 }
             }
 
-            if (!iter.Valid()) {
+            if (!iter.valid()) {
                 break;
             }
 
             if (Math.abs(rnd.nextInt()) % 2 != 0) {
-                iter.Next();
+                iter.next();
                 pos = MakeKey(key(pos), gen(pos) + 1);
             } else {
                 long new_target = RandomTarget(rnd);
                 if (new_target > pos) {
                     pos = new_target;
-                    iter.Seek(new_target);
+                    iter.seek(new_target);
                 }
             }
         }
@@ -309,7 +309,7 @@ public class SkipListTestMore {
             long reads = 0;
             state.Change(TestState.ReaderState.RUNNING);
             // System.out.println("sub reader thread running");
-            while (state.quit_flag_.Acquire_Load() == null) {
+            while (state.quit_flag_.acquireLoad() == null) {
                 state.t_.ReadStep(rnd);
                 ++reads;
                 // System.out.print("-");
@@ -337,7 +337,7 @@ public class SkipListTestMore {
             for (int j = 0; j < kSize; j++) {
                 state.t_.WriteStep(rnd);
             }
-            state.quit_flag_.Release_Store(state); // Any non-NULL arg will do
+            state.quit_flag_.releaseStore(state); // Any non-NULL arg will do
             state.Wait(TestState.ReaderState.DONE);
         }
     }

@@ -23,18 +23,18 @@ class MemTableIterator extends com.leveldb.common.Iterator {
 
     @Override
     public boolean valid() {
-        return iter_.Valid();
+        return iter_.valid();
     }
 
     @Override
     public void seekToFirst() {
-        iter_.SeekToFirst();
+        iter_.seekToFirst();
 
     }
 
     @Override
     public void seekToLast() {
-        iter_.SeekToLast();
+        iter_.seekToLast();
 
     }
 
@@ -48,19 +48,19 @@ class MemTableIterator extends com.leveldb.common.Iterator {
 
     @Override
     public void seek(Slice k) {
-        iter_.Seek(new Slice(EncodeKey(k)));
+        iter_.seek(new Slice(EncodeKey(k)));
 
     }
 
     @Override
     public void next() {
-        iter_.Next();
+        iter_.next();
 
     }
 
     @Override
     public void prev() {
-        iter_.Prev();
+        iter_.prev();
 
     }
 
@@ -187,7 +187,7 @@ public class MemTable {
                 coding.encodeVarint32(val_size), value.data());
         // assert((p + val_size) - buf == encoded_len);
         assert (buf.length == encoded_len);
-        table_.Insert(new Slice(buf));
+        table_.insert(new Slice(buf));
         // update the size of memtable
         approximateMemoryUsage.addAndGet(buf.length);
     }
@@ -201,8 +201,8 @@ public class MemTable {
         Slice memkey = key.memtable_key(); // whole slice data
         SkipListIterator<Slice, KeyComparator> iter = new SkipListIterator<Slice, KeyComparator>(
                 table_);
-        iter.Seek(memkey);
-        if (iter.Valid()) {
+        iter.seek(memkey);
+        if (iter.valid()) {
             // entry format is:
             // klength varint32
             // userkey char[klength]

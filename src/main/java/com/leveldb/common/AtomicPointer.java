@@ -10,25 +10,25 @@ public class AtomicPointer<V> {
         rep_ = new AtomicReference<V>(p);
     }
 
-    public V NoBarrier_Load() {
+    public V noBarrierLoad() {
         return rep_.get();
     }
 
-    public void NoBarrier_Store(V v) {
+    public void noBarrierStore(V v) {
         rep_.set(v);
     }
 
-    public V Acquire_Load() {
+    public V acquireLoad() {
 //		AtomicReference<V> res = new AtomicReference<V>();
 //		V v = rep_.get();
 //		res.compareAndSet(v, v); // make sure res is completely read
 //		return res.get();
-        return NoBarrier_Load();
+        return noBarrierLoad();
     }
 
-    public void Release_Store(V v) {
+    public void releaseStore(V v) {
 //		rep_.compareAndSet(v, v);	// make sure rep_ is completely set here
-        NoBarrier_Store(v);
+        noBarrierStore(v);
     }
 
 }

@@ -222,7 +222,7 @@ public class DBImpl extends DB {
         bg_compaction_scheduled_ = false;
         manual_compaction_ = null;
         mem_.Ref();
-        has_imm_.Release_Store(null);
+        has_imm_.releaseStore(null);
 
         // Reserve ten files or so for other uses and give the rest to
         // TableCache.
@@ -380,7 +380,7 @@ public class DBImpl extends DB {
                 logfile_number_ = new_log_number;
                 log_ = new com.leveldb.common.log.Writer(lfile);
                 imm_ = mem_;
-                has_imm_.Release_Store(imm_);
+                has_imm_.releaseStore(imm_);
                 mem_ = new MemTable(internal_comparator_);
                 mem_.Ref();
                 force = false; // Do not force another compaction if have room
@@ -540,7 +540,7 @@ public class DBImpl extends DB {
     public void Close() {
         // Wait for background work to finish
         mutex_.lock();
-        // shutting_down_.Release_Store(this); // Any non-NULL value is ok
+        // shutting_down_.releaseStore(this); // Any non-NULL value is ok
         while (bg_compaction_scheduled_) {
             try {
                 bg_cv_.await();
@@ -716,7 +716,7 @@ public class DBImpl extends DB {
         long last_sequence_for_key = SequenceNumber.kMaxSequenceNumber;
         for (; input.valid() && !shutting_down_.get(); ) {
             // Prioritize immutable compaction work
-            if (has_imm_.NoBarrier_Load() != null) {
+            if (has_imm_.noBarrierLoad() != null) {
                 long imm_start = env_.nowMicros();
                 mutex_.lock();
                 if (imm_ != null) {
@@ -923,7 +923,7 @@ public class DBImpl extends DB {
             // Commit to the new state
             imm_.Unref();
             imm_ = null;
-            has_imm_.Release_Store(null); // set to null
+            has_imm_.releaseStore(null); // set to null
             DeleteObsoleteFiles();
         }
 

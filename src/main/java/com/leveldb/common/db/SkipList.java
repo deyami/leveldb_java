@@ -19,38 +19,38 @@ class Node<Key> {
 
     // Accessors/mutators for links. Wrapped in methods so we can
     // add the appropriate barriers as necessary.
-    Node<Key> Next(int n) {
+    Node<Key> next(int n) {
         assert (n >= 0);
         // Use an 'acquire load' so that we observe a fully initialized
         // version of the returned Node.
-        return next_[n].Acquire_Load();
+        return next_[n].acquireLoad();
     }
 
-    void SetNext(int n, Node<Key> x) {
+    void setNext(int n, Node<Key> x) {
         assert (n >= 0);
         // Use a 'release store' so that anybody who reads through this
         // pointer observes a fully initialized version of the inserted
         // node.
-        next_[n].Release_Store(x);
+        next_[n].releaseStore(x);
     }
 
     // No-barrier variants that can be safely used in a few locations.
-    Node<Key> NoBarrier_Next(int n) {
+    Node<Key> noBarrierNext(int n) {
         assert (n >= 0);
-        return next_[n].NoBarrier_Load();
+        return next_[n].noBarrierLoad();
     }
 
-    void NoBarrier_SetNext(int n, Node<Key> x) {
+    void noBarrierSetNext(int n, Node<Key> x) {
         assert (n >= 0);
-        next_[n].NoBarrier_Store(x);
+        next_[n].noBarrierStore(x);
     }
 
     public String toString() {
         String s = "[" + key.toString() + "]";
         int idx = 0;
         for (AtomicPointer<Node<Key>> n : next_) {
-            if (n.Acquire_Load() != null) {
-                s += (idx + ": " + n.Acquire_Load().toString());
+            if (n.acquireLoad() != null) {
+                s += (idx + ": " + n.acquireLoad().toString());
             }
             idx += 1;
         }
@@ -79,14 +79,14 @@ class SkipListIterator<Key, Comparator extends _Comparable<Key>> {
     }
 
     // Returns true iff the iterator is positioned at a valid node.
-    boolean Valid() {
+    boolean valid() {
         return node_ != null;
     }
 
     // Returns the key at the current position.
     // REQUIRES: valid()
     Key key() {
-        assert (Valid());
+        assert (valid());
         if (node_ == null) {
             @SuppressWarnings("unused")
             int d = 0;
@@ -96,38 +96,38 @@ class SkipListIterator<Key, Comparator extends _Comparable<Key>> {
 
     // Advances to the next position.
     // REQUIRES: valid()
-    void Next() {
-        assert (Valid());
-        node_ = node_.Next(0);
+    void next() {
+        assert (valid());
+        node_ = node_.next(0);
     }
 
     // Advances to the previous position.
     // REQUIRES: valid()
-    void Prev() {
+    void prev() {
         // Instead of using explicit "prev" links, we just search for the
         // last node that falls before key.
-        assert (Valid());
-        node_ = list_.FindLessThan(node_.key);
+        assert (valid());
+        node_ = list_.findLessThan(node_.key);
         if (node_ == list_.head_) {
             node_ = null;
         }
     }
 
     // Advance to the first entry with a key >= target
-    void Seek(Key target) {
-        node_ = list_.FindGreaterOrEqual(target, null);
+    void seek(Key target) {
+        node_ = list_.findGreaterOrEqual(target, null);
     }
 
     // Position at the first entry in list.
     // Final state of iterator is valid() iff list is not empty.
-    void SeekToFirst() {
-        node_ = list_.head_.Next(0);
+    void seekToFirst() {
+        node_ = list_.head_.next(0);
     }
 
     // Position at the last entry in list.
     // Final state of iterator is valid() iff list is not empty.
-    void SeekToLast() {
-        node_ = list_.FindLast();
+    void seekToLast() {
+        node_ = list_.findLast();
         if (node_ == list_.head_) {
             node_ = null;
         }
@@ -154,15 +154,15 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
 
     Comparator compare_;
 
-    private int GetMaxHeight() {
-        return (max_height_.NoBarrier_Load());
+    private int getMaxHeight() {
+        return (max_height_.noBarrierLoad());
     }
 
-    public Node<Key> FindLast() {
+    public Node<Key> findLast() {
         Node<Key> x = head_;
-        int level = GetMaxHeight() - 1;
+        int level = getMaxHeight() - 1;
         while (true) {
-            Node<Key> next = x.Next(level);
+            Node<Key> next = x.next(level);
             if (next == null) {
                 if (level == 0) {
                     return x;
@@ -189,17 +189,17 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
         max_height_ = new AtomicPointer<Integer>(1);
         rnd_ = new Random();
         for (int i = 0; i < kMaxHeight; i++) {
-            head_.SetNext(i, null);
+            head_.setNext(i, null);
         }
     }
 
     // find the node that is less than key
-    public Node<Key> FindLessThan(Key key) {
+    public Node<Key> findLessThan(Key key) {
         Node<Key> x = head_;
-        int level = GetMaxHeight() - 1;
+        int level = getMaxHeight() - 1;
         while (true) {
             assert (x == head_ || compare_.compare(x.key, key) < 0);
-            Node<Key> next = x.Next(level);
+            Node<Key> next = x.next(level);
             if (next == null || compare_.compare(next.key, key) >= 0) {
                 if (level == 0) {
                     return x;
@@ -214,16 +214,16 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
     }
 
     /* insert a key into the list */
-    public void Insert(Key key) {
+    public void insert(Key key) {
         List<Node<Key>> prev = new ArrayList<Node<Key>>(kMaxHeight);
         for (int i = 0; i < kMaxHeight; i++) {
             prev.add(new Node<Key>(null, kMaxHeight));
         }
-        Node<Key> x = FindGreaterOrEqual(key, prev);
+        Node<Key> x = findGreaterOrEqual(key, prev);
         assert (x == null || compare_.compare(key, x.key) != 0);
-        int height = RandomHeight();
-        if (height > GetMaxHeight()) {
-            for (int i = GetMaxHeight(); i < height; i++) {
+        int height = randomHeight();
+        if (height > getMaxHeight()) {
+            for (int i = getMaxHeight(); i < height; i++) {
                 prev.set(i, head_);
             }
             // It is ok to mutate max_height_ without any synchronization
@@ -233,22 +233,22 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
             // the loop below. In the former case the reader will
             // immediately drop to the next level since NULL sorts after all
             // keys. In the latter case the reader will use the new node.
-            max_height_.NoBarrier_Store(height);
+            max_height_.noBarrierStore(height);
         }
 
         x = new Node<Key>(key, height);
         for (int i = 0; i < height; i++) {
-            // NoBarrier_SetNext() suffices since we will add a barrier when
+            // noBarrierSetNext() suffices since we will add a barrier when
             // we publish a pointer to "x" in prev[i].
-            x.NoBarrier_SetNext(i, prev.get(i).NoBarrier_Next(i));
-            prev.get(i).SetNext(i, x);
+            x.noBarrierSetNext(i, prev.get(i).noBarrierNext(i));
+            prev.get(i).setNext(i, x);
         }
 
     }
 
     // whether key is contained in the list
-    public boolean Contains(Key key) {
-        Node<Key> x = FindGreaterOrEqual(key, null);
+    public boolean contains(Key key) {
+        Node<Key> x = findGreaterOrEqual(key, null);
         if (x != null && compare_.compare(key, x.key) == 0) {
             return true;
         } else {
@@ -257,7 +257,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
     }
 
     // randomly generate height for a node
-    private int RandomHeight() {
+    private int randomHeight() {
         // increase length by i with probability (0.25)^(i-1) * (0.75)
         int kBranching = 4;
         int height = 1;
@@ -274,12 +274,12 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
     // set prev[0] to be the node right before the returned one (
     // to be as the node's previous). it is interesting to find the
     // return statement is ...
-    public Node<Key> FindGreaterOrEqual(Key key, List<Node<Key>> prev) {
+    public Node<Key> findGreaterOrEqual(Key key, List<Node<Key>> prev) {
         Node<Key> x = head_;
-        int level = GetMaxHeight() - 1;
+        int level = getMaxHeight() - 1;
         while (true) {
-            Node<Key> next = x.Next(level);
-            if (KeyIsAfterNode(key, next)) {
+            Node<Key> next = x.next(level);
+            if (keyIsAfterNode(key, next)) {
                 // Keep searching in this list
                 x = next;
             } else {
@@ -295,7 +295,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
         }
     }
 
-    private boolean KeyIsAfterNode(Key key, Node<Key> n) {
+    private boolean keyIsAfterNode(Key key, Node<Key> n) {
         // NULL n is considered infinite
         return (n != null) && compare_.compare(n.key, key) < 0;
     }
@@ -347,20 +347,20 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
             TestComparator cmp = new TestComparator();
             SkipList<Integer, TestComparator> list = new SkipList<Integer, TestComparator>(
                     cmp);
-            ASSERT_TRUE(!list.Contains(10));
+            ASSERT_TRUE(!list.contains(10));
 
             SkipListIterator<Integer, TestComparator> iter = new SkipListIterator<Integer, TestComparator>(
                     list);
-            ASSERT_TRUE(!iter.Valid());
-            iter.SeekToFirst();
-            ASSERT_TRUE(!iter.Valid());
-            iter.Seek(100);
-            ASSERT_TRUE(!iter.Valid());
-            iter.SeekToLast();
-            ASSERT_TRUE(!iter.Valid());
+            ASSERT_TRUE(!iter.valid());
+            iter.seekToFirst();
+            ASSERT_TRUE(!iter.valid());
+            iter.seek(100);
+            ASSERT_TRUE(!iter.valid());
+            iter.seekToLast();
+            ASSERT_TRUE(!iter.valid());
         }
 
-        void InsertAndLookup() {
+        void insertAndLookup() {
 
             class re_integer implements Comparable<re_integer> {
                 int val;
@@ -389,12 +389,12 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
                 if (keys.add(key)) {
                     keys_reverse.add(new re_integer(key));
                     // System.out.println(key);
-                    list.Insert(key);
+                    list.insert(key);
                 }
             }
 
             for (int i = 0; i < R; i++) {
-                if (list.Contains(i)) {
+                if (list.contains(i)) {
                     ASSERT_TRUE(keys.contains(i));
                 } else {
                     ASSERT_TRUE(!keys.contains(i));
@@ -405,19 +405,19 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
             {
                 SkipListIterator<Integer, TestComparator> iter = new SkipListIterator<Integer, SkipList.TestComparator>(
                         list);
-                ASSERT_TRUE(!iter.Valid());
+                ASSERT_TRUE(!iter.valid());
 
-                iter.Seek(Integer.MIN_VALUE);// different from cpp, 'cause java
+                iter.seek(Integer.MIN_VALUE);// different from cpp, 'cause java
                 // doesnot support uint64
-                ASSERT_TRUE(iter.Valid());
+                ASSERT_TRUE(iter.valid());
                 ASSERT_EQ(keys.first(), iter.key());
 
-                iter.SeekToFirst();
-                ASSERT_TRUE(iter.Valid());
+                iter.seekToFirst();
+                ASSERT_TRUE(iter.valid());
                 ASSERT_EQ(keys.first(), iter.key());
 
-                iter.SeekToLast();
-                ASSERT_TRUE(iter.Valid());
+                iter.seekToLast();
+                ASSERT_TRUE(iter.valid());
                 ASSERT_EQ(keys.last(), iter.key());
             }
 
@@ -425,7 +425,7 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
             for (int i = 0; i < R; i++) {
                 SkipListIterator<Integer, TestComparator> iter = new SkipListIterator<Integer, SkipList.TestComparator>(
                         list);
-                iter.Seek(i);
+                iter.seek(i);
 
                 // Compare against model iterator
                 // std::set<Key>::iterator model_iter = keys.lower_bound(i);
@@ -433,12 +433,12 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
                 Iterator<Integer> model_iter = model_.iterator();
                 for (int j = 0; j < 3; j++) {
                     if (!model_iter.hasNext()) {
-                        ASSERT_TRUE(!iter.Valid());
+                        ASSERT_TRUE(!iter.valid());
                         break;
                     } else {
-                        ASSERT_TRUE(iter.Valid());
+                        ASSERT_TRUE(iter.valid());
                         ASSERT_EQ(model_iter.next(), iter.key());
-                        iter.Next();
+                        iter.next();
                     }
                 }
             }
@@ -447,16 +447,16 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
             {
                 SkipListIterator<Integer, TestComparator> iter = new SkipListIterator<Integer, SkipList.TestComparator>(
                         list);
-                iter.SeekToLast();
+                iter.seekToLast();
 
                 // Compare against model iterator
                 Iterator<re_integer> model_iter = keys_reverse.iterator();
                 for (; model_iter.hasNext(); ) {
-                    ASSERT_TRUE(iter.Valid());
+                    ASSERT_TRUE(iter.valid());
                     ASSERT_EQ(model_iter.next().val, iter.key());
-                    iter.Prev();
+                    iter.prev();
                 }
-                ASSERT_TRUE(!iter.Valid());
+                ASSERT_TRUE(!iter.valid());
             }
 
         }
@@ -467,6 +467,6 @@ public class SkipList<Key, Comparator extends _Comparable<Key>> {
     public static void main(String args[]) {
         SkiplistTest slt = new SkiplistTest();
         // slt.Empty();
-        slt.InsertAndLookup();
+        slt.insertAndLookup();
     }
 }
