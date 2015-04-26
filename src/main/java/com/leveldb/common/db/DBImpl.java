@@ -480,8 +480,7 @@ public class DBImpl extends DB {
             } else if (imm != null && imm.Get(lkey, result, s) != null) {
                 // Done
             } else {
-                result.setData_(current.Get(options, lkey, stats,
-                        new Status[]{new Status()}));
+                result.setData_(current.Get(options, lkey, stats, new Status[]{new Status()}));
                 have_stat_update = true;
             }
             mutex_.lock();
@@ -491,8 +490,9 @@ public class DBImpl extends DB {
             maybeScheduleCompaction();
         }
         mem.Unref();
-        if (imm != null)
+        if (imm != null) {
             imm.Unref();
+        }
         current.Unref();
 
         mutex_.unlock();

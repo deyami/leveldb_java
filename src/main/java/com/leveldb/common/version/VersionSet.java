@@ -347,8 +347,7 @@ public class VersionSet {
             // No reason to unlock *mu here since we only hit this path in the
             // first call to logAndApply (when opening the database).
             assert (descriptor_file_ == null);
-            new_manifest_file = FileName.descriptorFileName(dbname_,
-                    manifest_file_number_);
+            new_manifest_file = FileName.descriptorFileName(dbname_, manifest_file_number_);
             edit.setNextFile(next_file_number_);
             descriptor_file_ = env_.newWritableFile(new_manifest_file);
             descriptor_log_ = new Writer(descriptor_file_);
